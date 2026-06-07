@@ -2,6 +2,22 @@
    Send to FC — interactive 4-step shipment wizard.
    Steps: 1 Choose inventory · 2 Confirm shipping · 3 Print box labels
           · 4 Confirm carrier/freight · Final Tracking details
+
+   TUTORIAL ANCHORS (public contract — do not rename without grepping
+   console/tutorials/ first; verified by console/_smoke.js):
+     data-tour="qty-{i}"          Step 1 boxes input (per SKU index)
+     data-tour="packing-{i}"      Step 1 packing-details dropdown (per SKU)
+     data-tour="ship-from"        Step 1 "Ship from another address" link
+     data-tour="confirm-step1"    Step 1 "Confirm and continue"
+     data-tour="mode-{id}"        Step 2 shipping-mode card (agl|send|own)
+     data-tour="placement-{id}"   Step 2 placement option row
+     data-tour="confirm-step2"    Step 2 "Confirm shipping destinations"
+     data-tour="print-labels"     Step 3 first shipment "Print" button
+     data-tour="continue-step3"   Step 3 "Continue to carrier…"
+     data-tour="confirm-step4"    Step 4 "Confirm shipment information"
+     data-tour="save-tracking"    Final step "Save"
+     data-tour="pack-upb"         Packing modal "Units per box" field
+     data-tour="box-weight"       Box-contents modal first box weight field
    ============================================================ */
 (function () {
   const A = window.App, D = window.DATA, esc = A.esc;
@@ -29,6 +45,39 @@
       ready: {},               // index -> confirmed ("ready to send")
       activeTab: "all",        // "all" | "ready"
     };
+  };
+
+  /* Apply a declarative wizard scenario onto the live wizard state. This is the
+     Demo-owned half of App.setScenario: tutorials describe *what* state a step
+     needs and this function knows *how* to write it, so tutorials never touch
+     wizard internals directly. Only keys present in `s` are applied.
+       openStep     number  — which step panel is expanded
+       done         array   — step numbers marked complete (replaces the set)
+       ready        array | "all" — SKU indices confirmed "ready to send"
+       qtyDefault   number  — fill boxes for any SKU that has none yet
+       qty          object  — explicit {index: boxes} overrides
+       placement / shipMode / activeTab / addrId / destination — direct fields */
+  A.applyWizardScenario = function (w, s) {
+    if ("qtyDefault" in s) w.skus.forEach(i => { if (!(+w.qty[i] > 0)) w.qty[i] = s.qtyDefault; });
+    if ("qty" in s) Object.assign(w.qty, s.qty);
+    if ("ready" in s) { w.ready = {}; (s.ready === "all" ? w.skus : s.ready).forEach(i => { w.ready[i] = true; }); }
+    if ("activeTab" in s) w.activeTab = s.activeTab;
+    if ("done" in s) { w.done = {}; (s.done || []).forEach(n => { w.done[n] = true; }); }
+    if ("placement" in s) w.placement = s.placement;
+    if ("shipMode" in s) w.shipMode = s.shipMode;
+    if ("addrId" in s) w.addrId = s.addrId;
+    if ("destination" in s) w.destination = s.destination;
+    if ("openStep" in s) w.openStep = s.openStep;
+  };
+
+  /* Resolve a scenario `modal` spec to a modal node (or null to close).
+       {type:"packing", i?}  — packing details for a SKU (defaults to first SKU)
+       {type:"boxes",   n?}  — box contents for a shipment (defaults to first) */
+  A.scenarioModal = function (m) {
+    if (!m) return null;
+    if (m.type === "packing") return packingModal(m.i != null ? m.i : W().skus[0]);
+    if (m.type === "boxes") return boxesModal(m.n != null ? m.n : D.SHIPMENTS[0].n);
+    return null;
   };
 
   function W() { return A.state.wizard; }

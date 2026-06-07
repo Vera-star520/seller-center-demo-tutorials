@@ -25,16 +25,22 @@ window.App = (function () {
   function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
 
   // ---- chrome ----
+  // TUTORIAL ANCHORS (public contract — see console/tutorials/, verified by
+  // console/_smoke.js): data-tour="burger" (menu button), "menu-inventory"
+  // (Inventory section), "menu-fba-inventory" (FBA Inventory fly-out link).
   function slideMenu() {
     if (!state.menuOpen) return "";
     const bm = `<svg class="sm-bm" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg>`;
-    const item = (label, sub) => `
-      <div class="sm-item ${sub ? "has-fly" : "disabled"}" data-act="menu-noop">
+    // `sec` (set only for sections with a fly-out) gives the item a tour anchor
+    // and lets state.menuExpand force the fly-out open — the real menu reveals it
+    // on hover, but the guide drives it by state so it can spotlight inside it.
+    const item = (label, sub, sec) => `
+      <div class="sm-item ${sub ? "has-fly" : "disabled"}${sec && state.menuExpand === sec ? " open" : ""}" data-act="menu-noop"${sec ? ` data-tour="menu-${sec}"` : ""}>
         <span>${label}</span><span class="ch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
         ${sub ? `<div class="sm-fly">
           <div class="sm-link disabled"><span>Manage All Inventory</span>${bm}</div>
           <div class="sm-shead">Fulfillment by Amazon (FBA)</div>
-          <div class="sm-link" data-act="goto" data-page="inventory"><span>FBA Inventory</span>${bm}</div>
+          <div class="sm-link" data-act="goto" data-page="inventory" data-tour="menu-fba-inventory"><span>FBA Inventory</span>${bm}</div>
           <div class="sm-link" data-act="goto" data-page="shipments"><span>Shipments</span>${bm}</div>
           <div class="sm-link" data-act="goto" data-page="awd"><span>Warehousing and distribution (AWD)</span>${bm}</div>
         </div>` : ""}
@@ -44,7 +50,7 @@ window.App = (function () {
       <div class="sm-panel" data-act="menu-noop">
         <div class="sm-top"><span class="x" data-act="menu-toggle">&#10005;</span><b>Menu</b></div>
         ${item("Catalog")}
-        ${item("Inventory", true)}
+        ${item("Inventory", true, "inventory")}
         ${item("Orders")}
         ${item("Growth")}
         ${item("Reports")}
@@ -58,7 +64,7 @@ window.App = (function () {
   function topbar() {
     return `
     <div class="topbar">
-      <div class="burger" data-act="menu-toggle">&#9776;</div>
+      <div class="burger" data-act="menu-toggle" data-tour="burger">&#9776;</div>
       <div class="brand" data-act="goto" data-page="home">
         <span class="logo">Seller Central</span>
       </div>
@@ -111,6 +117,28 @@ window.App = (function () {
   // ---- modal ----
   function openModal(node) { state.modal = node; render(); }
   function closeModal() { state.modal = null; render(); }
+
+  // ---- scenario: the single narrow entry point tutorials use to set state ----
+  // A tutorial describes the console state it needs declaratively; the Demo owns
+  // *how* to reach it. Only keys present in `spec` are applied — everything else
+  // is left untouched — so a step sets exactly what it needs and nothing more.
+  // Wizard internals are delegated to App.applyWizardScenario (send-to-fc.js) and
+  // modals to App.scenarioModal, so this file never hard-codes wizard fields.
+  function setScenario(spec) {
+    spec = spec || {};
+    if ("page" in spec) state.page = spec.page;
+    if ("openNav" in spec) state.openNav = spec.openNav;
+    if ("menuOpen" in spec) state.menuOpen = spec.menuOpen;
+    if ("menuExpand" in spec) state.menuExpand = spec.menuExpand;
+    if ("groupOpen" in spec) state.groupOpen = spec.groupOpen;
+    if (spec.selected) state.selected = new Set(spec.selected);
+    if (spec.wizard) {
+      if (!state.wizard) App.initWizard();
+      if (App.applyWizardScenario) App.applyWizardScenario(state.wizard, spec.wizard);
+    }
+    if ("modal" in spec) state.modal = (spec.modal && App.scenarioModal) ? App.scenarioModal(spec.modal) : null;
+    render();
+  }
 
   // ---- navigation ----
   function navigate(page) {
@@ -208,7 +236,7 @@ window.App = (function () {
 
   return {
     state, mount, render, navigate, el, esc,
-    openModal, closeModal, onRender,
+    openModal, closeModal, onRender, setScenario,
     reset: function () {
       state.page = "home"; state.openNav = null; state.menuOpen = false; state.menuExpand = null;
       state.selected.clear(); state.groupOpen = false; state.modal = null; state.wizard = null;

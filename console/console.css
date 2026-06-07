@@ -516,7 +516,9 @@ svg.caret.up { transform: rotate(180deg); }
 /* ---- hover flyout (second-level menu) ---- */
 .sm-fly { display: none; position: absolute; left: 100%; top: -1px; width: 360px; background: #fff; border-radius: 0 4px 4px 0;
   box-shadow: 10px 10px 34px -10px rgba(0,0,0,0.32); padding: 14px 0 16px; z-index: 10; }
-.sm-item.has-fly:hover .sm-fly { display: block; }
+/* hover reveals it for real users; .open lets the guide drive it by state */
+.sm-item.has-fly:hover .sm-fly,
+.sm-item.has-fly.open .sm-fly { display: block; }
 .sm-link { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 13px 22px; font-size: 15px; color: var(--link); cursor: pointer; }
 .sm-link:hover { background: #eef3f3; }
 .sm-link.disabled { color: var(--faint); cursor: default; }

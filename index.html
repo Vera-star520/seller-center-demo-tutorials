@@ -101,8 +101,12 @@
   <script src="console/app.js"></script>
   <script src="console/pages.js"></script>
   <script src="console/send-to-fc.js"></script>
-  <script src="console/tutorials.js"></script>
+  <!-- Tutorials: shared scaffolding first, then one file per tutorial. -->
+  <script src="console/tutorials/_shared.js"></script>
+  <script src="console/tutorials/shipping-plan.js"></script>
+  <script src="console/tutorials/_placeholders.js"></script>
   <script src="console/guide.js"></script>
+  <script src="console/_smoke.js"></script>
   <script>
     (function () {
       const grid = document.getElementById("libGrid");

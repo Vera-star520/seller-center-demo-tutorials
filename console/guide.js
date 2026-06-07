@@ -168,6 +168,9 @@ window.Guide = (function () {
 
   function show() {
     const step = cur.steps[idx];
+    // Declarative state first (the Demo owns how to reach it), then the optional
+    // imperative escape hatch for "action" setup (opening modals, odd nav).
+    if (step.scenario) App.setScenario(step.scenario);
     if (step.pre) step.pre();
     updateRail();
     renderCoach(step);

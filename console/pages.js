@@ -1,6 +1,14 @@
 /* ============================================================
    Pages: Home, FBA Inventory, Shipments queue, AWD landing.
    Each registers a renderer into App.pages.
+
+   TUTORIAL ANCHORS (public contract — do not rename without grepping
+   console/tutorials/ first; a renamed/removed anchor silently breaks the
+   spotlight and is caught by console/_smoke.js):
+     data-tour="ck-{i}"          FBA Inventory row checkbox (per SKU index)
+     data-tour="groupbar"        bottom group-action bar
+     data-tour="group-action"    "Select group action" button
+     data-tour="send-fba"        "Send to FBA" item in the group-action menu
    ============================================================ */
 (function () {
   const A = window.App, D = window.DATA, esc = A.esc;
