@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>FBABEE · Interactive Seller Console Tutorials</title>
+<link rel="stylesheet" href="console/console.css" />
+<link rel="stylesheet" href="console/guide.css" />
+<style>
+  /* ---------------- Library (top layer) — FBABEE brand tone ---------------- */
+  #library { --brand-navy: #1b214c; --brand-navy-2: #2a3270; --brand-navy-700: #141937;
+    --brand-orange: #f2922e; --brand-orange-600: #e07d18;
+    min-height: 100vh; background:
+      radial-gradient(900px 520px at 8% -8%, #e8e9f5, transparent 60%),
+      radial-gradient(820px 520px at 102% 4%, #fdf1e3, transparent 55%),
+      #f4f5f8; }
+  .lib-bar { display: flex; align-items: center; gap: 14px; padding: 18px 40px; }
+  .lib-bar img { height: 30px; }
+  .lib-bar .div { width: 1px; height: 26px; background: var(--line); }
+  .lib-bar .ttl { font-family: var(--font-d); font-weight: 700; font-size: 15px; color: var(--ink); }
+  .lib-bar .ttl span { display: block; font-size: 11.5px; font-weight: 600; color: var(--muted); }
+  .lib-bar .right { margin-left: auto; font-size: 13px; color: var(--muted); }
+
+  .lib-wrap { max-width: 1180px; margin: 0 auto; padding: 26px 40px 80px; }
+  .lib-hero { margin-bottom: 30px; max-width: 720px; }
+  .lib-hero .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: var(--brand-orange-600); }
+  .lib-hero h1 { font-family: var(--font-d); font-weight: 800; font-size: 38px; line-height: 1.08; letter-spacing: -0.025em; color: var(--ink); margin: 12px 0 12px; }
+  .lib-hero p { font-size: 16px; line-height: 1.6; color: var(--muted); margin: 0; }
+
+  .lib-controls { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .lib-search { display: flex; height: 44px; width: 320px; max-width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 11px; overflow: hidden; }
+  .lib-search input { flex: 1; border: 0; padding: 0 16px; font-size: 14px; outline: none; }
+  .lib-search .ic { display: grid; place-items: center; width: 46px; color: var(--muted); font-size: 17px; }
+  .lib-cats { display: flex; gap: 8px; flex-wrap: wrap; }
+  .cat { padding: 9px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); background: #fff; border: 1px solid var(--line); cursor: pointer; transition: all 140ms; }
+  .cat:hover { border-color: var(--brand-navy); color: var(--brand-navy); }
+  .cat.on { background: var(--brand-navy); color: #fff; border-color: var(--brand-navy); }
+
+  .lib-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  @media (max-width: 1000px) { .lib-grid { grid-template-columns: repeat(2, 1fr); } }
+  .tcard { background: #fff; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 16px 40px -30px rgba(15,23,30,0.5); transition: transform 200ms, box-shadow 200ms; }
+  .tcard.live { cursor: pointer; }
+  .tcard.live:hover { border-color: var(--brand-navy); box-shadow: 0 22px 46px -30px rgba(27,33,76,0.5); }
+  .tcard.soon { opacity: 0.78; }
+
+  /* mini preview — FBABEE-branded guided-steps motif */
+  .tprev { height: 138px; background:
+      radial-gradient(140% 120% at 88% -10%, var(--brand-navy-2), transparent 60%),
+      var(--brand-navy);
+    border-bottom: 1px solid var(--soft-line); position: relative; overflow: hidden;
+    display: flex; align-items: center; justify-content: center; }
+  .tprev::after { content: ""; position: absolute; right: -40px; bottom: -50px; width: 150px; height: 150px;
+    border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.06); }
+  .tprev .cat-tag { position: absolute; top: 18px; left: 18px; z-index: 2; }
+  .pill.nav { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(2px); }
+  /* guided rail */
+  .rail-mini { display: flex; align-items: center; }
+  .rail-mini .seg { width: 30px; height: 2px; background: rgba(255,255,255,0.18); }
+  .rail-mini .seg.fill { background: var(--brand-orange); }
+  .rail-mini .node { width: 12px; height: 12px; border-radius: 50%; flex: none; background: rgba(255,255,255,0.22); }
+  .rail-mini .node.done { background: var(--brand-orange); }
+  .rail-mini .node.on { width: 20px; height: 20px; background: var(--brand-orange); box-shadow: 0 0 0 5px rgba(242,146,46,0.22); }
+
+  .tbody { padding: 18px 20px 20px; display: flex; flex-direction: column; flex: 1; }
+  .tbody .lvl { font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--brand-navy); }
+  .tbody h3 { font-family: var(--font-d); font-weight: 700; font-size: 18px; color: var(--ink); margin: 7px 0 8px; line-height: 1.2; letter-spacing: -0.01em; }
+  .tbody p { font-size: 13.5px; line-height: 1.55; color: var(--muted); margin: 0 0 16px; flex: 1; }
+  .tmeta { display: flex; align-items: center; gap: 14px; font-size: 12.5px; color: var(--faint); font-weight: 600; }
+  .tmeta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--faint); }
+  .tfoot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
+  .tfoot .go { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; color: var(--brand-navy); font-size: 14px; }
+  .tcard.live:hover .tfoot .go { color: var(--brand-orange-600); }
+  .tfoot .soon-badge { font-size: 12px; font-weight: 700; color: var(--muted); background: var(--soft-line); padding: 6px 12px; border-radius: 999px; }
+</style>
+</head>
+<body>
+  <div id="library">
+    <div class="lib-bar">
+      <img src="console/fbabee-logo.png" alt="FBABEE" />
+      <div class="div"></div>
+      <div class="ttl">Interactive Seller Console Tutorials<span>Hands-on walkthroughs of the real backend</span></div>
+      <div class="right">Training sandbox — no real account affected</div>
+    </div>
+    <div class="lib-wrap">
+      <div class="lib-hero">
+        <div class="eyebrow">Learn by doing</div>
+        <h1>Master the seller console, one click at a time.</h1>
+        <p>Pick a workflow below. Each tutorial drops you into a faithful, interactive copy of the backend and guides you through every step — click, type, and learn exactly what to do.</p>
+      </div>
+      <div class="lib-controls">
+        <div class="lib-search"><input id="libSearch" placeholder="Search tutorials…" /><span class="ic">&#9906;</span></div>
+        <div class="lib-cats" id="libCats"></div>
+      </div>
+      <div class="lib-grid" id="libGrid"></div>
+    </div>
+  </div>
+
+  <div id="player" style="display:none"></div>
+
+  <script src="console/data.js"></script>
+  <script src="console/app.js"></script>
+  <script src="console/pages.js"></script>
+  <script src="console/send-to-fc.js"></script>
+  <script src="console/tutorials.js"></script>
+  <script src="console/guide.js"></script>
+  <script>
+    (function () {
+      const grid = document.getElementById("libGrid");
+      const catsEl = document.getElementById("libCats");
+      const searchEl = document.getElementById("libSearch");
+      const list = Object.values(window.TUTORIALS);
+      const cats = ["All", ...Array.from(new Set(list.map(t => t.category)))];
+      let activeCat = "All", q = "";
+
+      catsEl.innerHTML = cats.map(c => `<div class="cat ${c === "All" ? "on" : ""}" data-c="${c}">${c}</div>`).join("");
+      catsEl.addEventListener("click", e => {
+        const c = e.target.closest(".cat"); if (!c) return;
+        activeCat = c.dataset.c;
+        catsEl.querySelectorAll(".cat").forEach(x => x.classList.toggle("on", x.dataset.c === activeCat));
+        render();
+      });
+      searchEl.addEventListener("input", () => { q = searchEl.value.toLowerCase().trim(); render(); });
+
+      function mini(cat) {
+        return `<div class="tprev">
+          <span class="cat-tag pill nav">${cat}</span>
+          <div class="rail-mini">
+            <i class="node done"></i><i class="seg fill"></i>
+            <i class="node done"></i><i class="seg fill"></i>
+            <i class="node on"></i><i class="seg"></i>
+            <i class="node"></i><i class="seg"></i>
+            <i class="node"></i>
+          </div>
+        </div>`;
+      }
+
+      function card(t) {
+        const live = !!t.steps;
+        const steps = live ? t.steps.length : "—";
+        return `<div class="tcard ${live ? "live" : "soon"}" ${live ? `data-id="${t.id}"` : ""}>
+          ${mini(t.category)}
+          <div class="tbody">
+            <div class="lvl">${t.level || "Workflow"}</div>
+            <h3>${t.title}</h3>
+            <p>${t.summary}</p>
+            <div class="tmeta"><span>${t.est || "—"}</span><span class="dot"></span><span>${live ? steps + " steps" : "In production"}</span></div>
+            <div class="tfoot">
+              ${live ? `<span class="go">Start tutorial &#8594;</span>` : `<span class="soon-badge">Coming soon</span>`}
+            </div>
+          </div>
+        </div>`;
+      }
+
+      function render() {
+        const items = list.filter(t =>
+          (activeCat === "All" || t.category === activeCat) &&
+          (!q || (t.title + " " + t.summary).toLowerCase().includes(q))
+        ).sort((a, b) => (!!b.steps) - (!!a.steps));
+        grid.innerHTML = items.length ? items.map(card).join("") : `<div class="muted" style="grid-column:1/-1;padding:40px 0">No tutorials match your search.</div>`;
+      }
+
+      grid.addEventListener("click", e => {
+        const c = e.target.closest(".tcard.live"); if (!c) return;
+        openTutorial(c.dataset.id);
+      });
+
+      function openTutorial(id) {
+        document.getElementById("library").style.display = "none";
+        const host = document.getElementById("player");
+        host.style.display = "block";
+        window.Guide.start(id, host, backToLibrary);
+      }
+      function backToLibrary() {
+        document.getElementById("player").style.display = "none";
+        document.getElementById("library").style.display = "";
+      }
+
+      render();
+    })();
+  </script>
+</body>
+</html>
