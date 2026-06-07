@@ -3,9 +3,9 @@
    Requires console/tutorials/_shared.js (loaded first).
    ============================================================ */
 (function () {
-  const { A, sendfc } = window.TutorialKit;
+  const { sendfc, register } = window.TutorialKit;
 
-  window.TUTORIALS["shipping-plan"] = {
+  register({
     id: "shipping-plan",
     title: "Create an FBA Shipping Plan",
     category: "Shipments",
@@ -21,7 +21,7 @@
       /* ---------------- START ---------------- */
       {
         mkey: "start", chip: "FBABEE · Guided tutorial", target: "", side: "center",
-        pre: () => { A.reset(); A.render(); },
+        scenario: { reset: true },
         title: "Create an FBA Shipping Plan",
         body: "We'll send inventory into the fulfillment network — from picking products to entering tracking. Follow the highlighted control, or click outside the spotlight any time to explore the console freely.",
         tip: "This is a safe sandbox. Nothing here affects a real account.",
@@ -88,7 +88,6 @@
         body: "Enter how many <b>boxes</b> to send for the first SKU. The <b>Units</b> field fills in automatically — units = boxes × units per box.",
         tip: "When boxes are set, a green <b>Confirm to send</b> button appears. Confirming locks the SKU and moves it to the <b>SKUs ready to send</b> tab.",
         action: "next",
-        onNext: () => { const w = A.state.wizard; if (!(+w.qty[w.skus[0]] > 0)) w.qty[w.skus[0]] = 20; w.ready[w.skus[0]] = true; A.render(); },
       },
       {
         mkey: "1", sub: "1a", chip: "Step 1a · Choose inventory",
@@ -97,7 +96,6 @@
         title: "Boxes for the second SKU",
         body: "Do the same for the second product — set its <b>boxes</b> and the units calculate automatically, then confirm it to send.",
         action: "next",
-        onNext: () => { const w = A.state.wizard; if (!(+w.qty[w.skus[1]] > 0)) w.qty[w.skus[1]] = 20; w.ready[w.skus[1]] = true; A.render(); },
       },
       {
         mkey: "1", sub: "1b", subLabel: "Packing details", chip: "Step 1b · Packing details",
@@ -194,5 +192,5 @@
         action: "click",
       },
     ],
-  };
+  });
 })();

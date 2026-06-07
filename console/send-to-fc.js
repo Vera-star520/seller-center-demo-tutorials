@@ -129,11 +129,14 @@
     const t = totals();
     const II = `<span class="info-i">i</span>`;
     const ready = w.activeTab === "ready";
+    // Table column tracks — one source so each tab's header and its rows can't drift.
+    const READY_COLS = "1.9fr 240px 1.15fr 250px";   // "SKUs ready to send" tab
+    const ALL_COLS = "26px 1.7fr 210px 1.2fr 210px"; // "All FBA SKUs" tab
 
     // "SKUs ready to send" tab — read-only confirmed view (one row per confirmed SKU)
     function readyRow(p, i, boxes, unitsOut) {
       return `
-      <div class="invrow confirmed" style="grid-template-columns:1.9fr 240px 1.15fr 250px;align-items:start">
+      <div class="invrow confirmed" style="grid-template-columns:${READY_COLS};align-items:start">
         <div class="prod"><div class="thumb"></div><div class="pcol">
           <a class="pname">${esc(p.name)}</a>
           <div class="pmeta kvline"><div>SKU: ${p.sku}</div><div>ASIN: ${p.asin}</div><div>FBA Storage Type: <b>${p.storage}</b></div></div>
@@ -162,7 +165,7 @@
     // "All FBA SKUs" tab — selection view with checkbox + quantity inputs
     function allRow(p, i, boxes, unitsOut, confirmed) {
       return `
-      <div class="invrow${confirmed ? " confirmed" : ""}" style="grid-template-columns:26px 1.7fr 210px 1.2fr 210px;align-items:start">
+      <div class="invrow${confirmed ? " confirmed" : ""}" style="grid-template-columns:${ALL_COLS};align-items:start">
         <div class="ck" data-act="wf-rowcheck" style="margin-top:2px"></div>
         <div class="prod"><div class="thumb"></div><div class="pcol">
           <div class="pname pname-1">${esc(p.shortName)}</div>
@@ -229,7 +232,7 @@
           </div>
         </div>
         <div class="invtable">
-          <div class="invhead" style="grid-template-columns:1.9fr 240px 1.15fr 250px">
+          <div class="invhead" style="grid-template-columns:${READY_COLS}">
             <span>SKU details<span class="info" style="color:var(--link)">Display preferences</span></span><span>Packing details ${II}</span><span>Information/action</span><span>Quantity to send</span>
           </div>
           ${rows || `<div style="padding:34px;text-align:center;color:var(--muted);font-size:13px">No SKUs are ready to send yet. Go to <b>All FBA SKUs</b>, enter <b>Boxes</b> for a SKU, then click <b>Confirm to send</b>.</div>`}
@@ -271,7 +274,7 @@
         <button class="btn sm search-btn" style="height:38px;border-radius:0 7px 7px 0;padding:0 18px" aria-label="Search"><svg viewBox="0 0 20 20" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M12.8 12.8L17 17"/></svg></button>
       </div>
       <div class="invtable">
-        <div class="invhead" style="grid-template-columns:26px 1.7fr 210px 1.2fr 210px">
+        <div class="invhead" style="grid-template-columns:${ALL_COLS}">
           <div class="ck" data-act="wf-checkall"></div><span>SKU details<span class="info" style="color:var(--link)">Display preferences</span></span><span>Packing details ${II}</span><span>Information / action</span><span>Quantity to send</span>
         </div>
         ${rows}

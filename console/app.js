@@ -126,6 +126,7 @@ window.App = (function () {
   // modals to App.scenarioModal, so this file never hard-codes wizard fields.
   function setScenario(spec) {
     spec = spec || {};
+    if (spec.reset) App.reset();               // full clean slate, then layer keys on top
     if ("page" in spec) state.page = spec.page;
     if ("openNav" in spec) state.openNav = spec.openNav;
     if ("menuOpen" in spec) state.menuOpen = spec.menuOpen;

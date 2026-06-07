@@ -43,5 +43,15 @@ window.TutorialKit = (function () {
     };
   }
 
-  return { A, sendfc };
+  /* The one way to add a tutorial — keeps registration uniform and guards the
+     tutorial↔tutorial collision (two files claiming the same id would otherwise
+     silently overwrite each other). */
+  function register(def) {
+    if (!def || !def.id) { console.error("registerTutorial: missing id", def); return def; }
+    if (window.TUTORIALS[def.id]) console.warn("registerTutorial: duplicate id '" + def.id + "' — overwriting");
+    window.TUTORIALS[def.id] = def;
+    return def;
+  }
+
+  return { A, sendfc, register };
 })();
