@@ -238,6 +238,10 @@ window.App = (function () {
   return {
     state, mount, render, navigate, el, esc,
     openModal, closeModal, onRender, setScenario,
+    // Render target accessors — let the smoke harness render into an off-screen
+    // node and restore the live mount afterward, without re-binding listeners.
+    getRoot: function () { return root; },
+    setRoot: function (el) { root = el; },
     reset: function () {
       state.page = "home"; state.openNav = null; state.menuOpen = false; state.menuExpand = null;
       state.selected.clear(); state.groupOpen = false; state.modal = null; state.wizard = null;

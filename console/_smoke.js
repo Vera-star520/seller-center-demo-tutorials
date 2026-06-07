@@ -1,20 +1,24 @@
 /* ============================================================
-   Tutorial smoke check (dev tool, no framework). Run from the library
-   landing page (before opening a tutorial):  smokeTutorials()
-   in the browser console. It walks every step of every tutorial, applies the
-   step's scenario/pre into an off-screen mounted console, and asserts the
-   spotlight target resolves to a visible element. This is the guard against the
-   exact failure that bit us before: a Demo edit silently orphaning a data-tour
-   anchor (e.g. the old [data-sec="inventory"]). Returns an array of problems
-   (empty = all good) and prints a table.
+   Tutorial smoke check (dev tool, no framework). Best run from the library
+   landing page:  smokeTutorials()  in the browser console. It walks every step
+   of every tutorial, applies the step's scenario/pre into an OFF-SCREEN node,
+   and asserts the spotlight target resolves to a visible element. This is the
+   guard against the exact failure that bit us before: a Demo edit silently
+   orphaning a data-tour anchor (e.g. the old [data-sec="inventory"]). Returns an
+   array of problems (empty = all good) and prints a table.
+
+   It renders into a throwaway node and restores the live render target before
+   returning, so it never freezes an open tutorial. (It does reset App.state as
+   cleanup; reopening a tutorial re-establishes state via Guide.start.)
    ============================================================ */
 window.smokeTutorials = function () {
+  const liveRoot = App.getRoot();            // remember the live mount (null on the library page)
   const host = document.createElement("div");
   host.style.cssText = "position:fixed;left:0;top:0;width:1280px;height:900px;opacity:0;pointer-events:none;z-index:-1;overflow:hidden";
   const app = document.createElement("div");
   host.appendChild(app);
   document.body.appendChild(host);
-  App.mount(app);
+  App.setRoot(app);                          // render into the off-screen node (no listener binding)
 
   const problems = [];
   Object.values(window.TUTORIALS).forEach(t => {
@@ -25,7 +29,7 @@ window.smokeTutorials = function () {
       catch (e) { error = String(e); }
       let found = true, visible = true;
       if (s.target) {
-        const el = document.querySelector(s.target);
+        const el = app.querySelector(s.target);
         found = !!el;
         const r = el && el.getBoundingClientRect();
         visible = !!(el && r.width > 0 && r.height > 0);
@@ -36,6 +40,7 @@ window.smokeTutorials = function () {
   });
 
   App.reset();
+  App.setRoot(liveRoot);                      // restore the live mount — never leave it dangling
   host.remove();
 
   if (problems.length) {

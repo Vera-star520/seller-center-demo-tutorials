@@ -181,7 +181,7 @@
         <div class="small muted kvline">
           <div>Units per box: <b>${p.unitsPerBox}</b></div>
           <div>Prep not required</div>
-          ${p.awd ? `<div>Manufacturer barcode</div>` : `<div class="fee-note"><div class="muted">Eligible for fulfillment fee savings</div><a>Enroll in Ships in Product Packaging</a></div><div style="margin-top:4px">Manufacturer barcode</div>`}
+          <div>Manufacturer barcode</div>
           <a class="small mute-link" style="display:inline-flex;align-items:center;gap:5px;margin-top:6px">More inputs ${DCARET}</a>
         </div>
         <div class="col qtycell" style="gap:7px">
@@ -392,7 +392,7 @@
       <div class="smode-grid">${modeCards}</div>
       <div class="b" style="font-size:17px;margin:30px 0 8px">Choose placement option</div>
       <div class="row" style="gap:18px;margin:16px 0;flex-wrap:wrap">
-        <select class="sel" style="width:250px"><option>Small parcel delivery (SPD)</option><option>Pallet delivery</option></select>
+        <select class="sel" style="width:250px"><option>Small parcel delivery (SPD)</option><option>Less than truck load (LTL)</option></select>
         <span class="b small">Delivery window ${II}</span>
         <span class="date-pill">${CALIC} Jul 12 – Jul 18, 2026</span>
       </div>
