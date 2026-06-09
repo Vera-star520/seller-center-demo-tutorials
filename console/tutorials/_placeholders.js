@@ -5,9 +5,13 @@
    ============================================================ */
 (function () {
   [
-    { id: "manage-shipments", title: "Track & Manage Shipments", category: "Shipments", level: "Core workflow", summary: "Find a shipment in the queue, read its status, and work an in-progress shipment to completion.", est: "4 min", soon: true },
-    { id: "fix-stranded", title: "Fix Stranded Inventory", category: "Inventory", level: "Problem solving", summary: "Locate stranded listings and relist them so units become sellable again.", est: "3 min", soon: true },
-    { id: "send-to-awd", title: "Send Inventory to AWD", category: "Storage", level: "Core workflow", summary: "Move bulk inventory into low-cost warehousing and set up auto-replenishment to FBA.", est: "5 min", soon: true },
-    { id: "restock", title: "Restock Recommendations", category: "Inventory", level: "Growth", summary: "Read restock suggestions and turn them into a shipping plan in a couple of clicks.", est: "4 min", soon: true },
+    { id: "print-fnsku-labels", title: "How to Print FNSKU Labels", category: "Inventory", level: "Inventory setup", summary: "Learn where to download and print FNSKU labels for your FBA products.", est: "3 min", soon: true, libraryOrder: 1 },
+    { id: "create-awd-shipping-plan", title: "Create an AWD Shipping Plan", category: "Shipments", level: "Core workflow", summary: "Create an AWD shipment plan and prepare inventory for Amazon Warehousing and Distribution.", est: "8–10 min", soon: true, libraryOrder: 3 },
+    { id: "get-reference-id", title: "How to Get the Reference ID", category: "Shipments", level: "Shipment details", summary: "Find the Amazon Reference ID needed for LTL / FTL shipments.", est: "2 min", soon: true, libraryOrder: 4 },
+    { id: "fill-tracking-ids", title: "How to Fill out Tracking IDs", category: "Shipments", level: "Shipment details", summary: "Enter or update tracking IDs for your shipments in Seller Central.", est: "3 min", soon: true, libraryOrder: 5 },
+    { id: "download-sku-list-box-ids", title: "How to Download the SKU List with Box IDs", category: "Shipments", level: "Shipment files", summary: "Download the SKU list or pack list with Box IDs to help ensure accurate carton labeling.", est: "3 min", soon: true, libraryOrder: 6 },
+    { id: "delete-shipping-plan", title: "How to Delete a Shipping Plan", category: "Shipments", level: "Problem solving", summary: "Delete an unwanted or incorrect shipping plan.", est: "2 min", soon: true, libraryOrder: 7 },
+    { id: "check-draft-shipping-plans", title: "How to Check Draft Shipping Plans", category: "Shipments", level: "Shipment management", summary: "Find and review draft shipping plans that have not been completed yet.", est: "3 min", soon: true, libraryOrder: 8 },
+    { id: "setup-assistant-account", title: "How to Set Up an Assistant Account", category: "Account Access", level: "Account access", summary: "Grant limited Seller Central access so FBABEE can help with shipment-related tasks without accessing sensitive account or payment information.", est: "4 min", soon: true, libraryOrder: 9 },
   ].forEach(window.TutorialKit.register);
 })();

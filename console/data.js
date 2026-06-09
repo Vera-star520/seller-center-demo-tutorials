@@ -120,5 +120,17 @@
     { n: 5, fc: "LIT2", id: "FBA19MNO86420", ref: "—", addr: "13001 Highway 70 72117-5026 — North Little Rock, AR — United States", boxes: 4, skus: 2, units: 4 },
   ];
 
-  window.DATA = { STORE, ADDRESSES, PRODUCTS: P, PLACEMENTS, SHIPMENTS };
+  const SHIPMENTS_BY_PLACEMENT = {
+    optimized: SHIPMENTS,
+    partial: [
+      { ...SHIPMENTS[2], n: 1, boxes: 16, units: 16, ref: "FBABEE01" },
+      { ...SHIPMENTS[3], n: 2, boxes: 12, units: 12 },
+      { ...SHIPMENTS[0], n: 3, boxes: 12, units: 12 },
+    ],
+    minimal: [
+      { n: 1, fc: "SCK8", id: "FBA20PQR97531", ref: "FBABEE01", addr: "Oakley, CA — United States", boxes: 40, skus: 2, units: 40 },
+    ],
+  };
+
+  window.DATA = { STORE, ADDRESSES, PRODUCTS: P, PLACEMENTS, SHIPMENTS, SHIPMENTS_BY_PLACEMENT };
 })();

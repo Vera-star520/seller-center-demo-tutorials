@@ -1,2 +1,6 @@
 .DS_Store
 node_modules/
+.vercel/
+checkpoints/
+.claude/settings.local.json
+Option A - Featured Hero.html

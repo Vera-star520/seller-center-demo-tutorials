@@ -1,0 +1,8 @@
+{
+  "name": "seller-center-demo-tutorials",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "find console -name '*.js' -print0 | xargs -0 -n1 node --check"
+  }
+}

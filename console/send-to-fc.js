@@ -13,6 +13,7 @@
      data-tour="package-template-{i}" Step 1 package-template area (per SKU)
      data-tour="packing-form"     Packing modal full template form
      data-tour="save-template"    Packing modal "Save" button
+     data-tour="confirm-sku-{i}"  Step 1 per-SKU "Confirm to send" button
      data-tour="confirm-step1"    Step 1 "Confirm and continue"
      data-tour="mode-{id}"        Step 2 shipping-mode card (agl|send|own)
      data-tour="placement-shipping-mode" Step 2 placement shipping-mode select
@@ -92,7 +93,10 @@
   A.scenarioModal = function (m) {
     if (!m) return null;
     if (m.type === "packing") return packingModal(m.i != null ? m.i : W().skus[0]);
-    if (m.type === "boxes") return boxesModal(m.n != null ? m.n : D.SHIPMENTS[0].n);
+    if (m.type === "boxes") {
+      const first = activeShipments()[0] || D.SHIPMENTS[0];
+      return boxesModal(m.n != null ? m.n : first.n);
+    }
     return null;
   };
 
@@ -100,6 +104,10 @@
   function addr() { return D.ADDRESSES.find(a => a.id === W().addrId); }
   function unitsOf(i) { return (+W().qty[i] || 0) * (D.PRODUCTS[i].unitsPerBox || 1); }
   function readyList() { const r = W().ready || {}; return D.PRODUCTS.map((_, i) => i).filter(i => r[i]); }
+  function activeShipments() {
+    const id = (W() && W().placement) || "optimized";
+    return (D.SHIPMENTS_BY_PLACEMENT && D.SHIPMENTS_BY_PLACEMENT[id]) || D.SHIPMENTS;
+  }
   function totals() {
     const list = readyList();
     const boxes = list.reduce((s, i) => s + (+W().qty[i] || 0), 0);
@@ -209,7 +217,7 @@
           <div class="confirmwrap" data-i="${i}" style="${confirmed || boxes > 0 ? "" : "display:none"}">
             ${confirmed
               ? `<span class="ready-badge">&#10003; Added to ready to send</span> <a class="small editlink" data-act="wf-uncheck" data-i="${i}">Edit</a>`
-              : `<button class="btn confirm-send sm" data-act="wf-confirm-sku" data-i="${i}">Confirm to send</button>`}
+              : `<button class="btn confirm-send sm" data-act="wf-confirm-sku" data-i="${i}"${i < 2 ? ` data-tour="confirm-sku-${i}"` : ""}>Confirm to send</button>`}
           </div>
         </div>
       </div>`;
@@ -313,6 +321,7 @@
     const w = W();
     const open = w.openStep === 2, done = !!w.done[2];
     const II = `<span class="info-i">i</span>`;
+    const shipments = activeShipments();
 
     const modes = [
       { id: "agl", title: "Amazon Global Logistics (recommended)",
@@ -344,6 +353,27 @@
       </div>`;
     }).join("");
 
+    const methodCards = `
+      <div class="ship-method-grid">
+        <div class="ship-method-card selected" aria-current="true">
+          <span class="smode-check">&#10003;</span>
+          <div class="ship-method-title on">Amazon Fulfillment Center</div>
+          <div class="ship-method-meta">1 to 5 shipments</div>
+          <div class="ship-method-copy">
+            <div class="ship-method-line">Placement service fee varies with shipment splits</div>
+            <div class="ship-method-line">Best option for inventory shipping directly to FBA</div>
+          </div>
+        </div>
+        <div class="ship-method-card">
+          <div class="ship-method-title">Amazon Warehousing and Distribution</div>
+          <div class="ship-method-meta muted">1 shipment</div>
+          <div class="ship-method-copy">
+            <div class="ship-method-line">Store upstream inventory with Amazon before FBA replenishment</div>
+            <div class="ship-method-line">Rate details available after AWD setup</div>
+          </div>
+        </div>
+      </div>`;
+
     const placements = D.PLACEMENTS.map(o => {
       const sel = w.placement === o.id;
       return `<div class="plc-row${sel ? " psel" : ""}" data-act="wf-place" data-id="${o.id}" data-tour="placement-${o.id}">
@@ -359,7 +389,7 @@
       </div>`;
     }).join("");
 
-    const shipCards = D.SHIPMENTS.map(s => {
+    const shipCards = shipments.map(s => {
       const thumbs = Array.from({ length: Math.min(s.boxes, 5) }, () => `<span class="sc-thumb"></span>`).join("");
       return `<div class="shipcard">
         <div class="shipcard-head">Shipment #${s.n}</div>
@@ -404,6 +434,10 @@
     }).join("");
 
     const body = `
+      <div class="ship-method-block">
+        <div class="b small" style="margin-bottom:12px">Shipment method ${II}</div>
+        ${methodCards}
+      </div>
       <div class="b small" style="margin-bottom:12px">Shipping mode</div>
       <div class="smode-grid">${modeCards}</div>
       <div data-tour="placement-options-capture">
@@ -417,7 +451,7 @@
           <div class="plc-head"><span></span><span>Placement options</span><span>Delivery window</span><span>Total cost (shipping estimated) ${II}</span></div>
           ${placements}
         </div>
-        <div class="row" style="gap:10px;margin:22px 0 14px"><span class="b small">Number of shipments: ${D.SHIPMENTS.length}</span></div>
+        <div class="row" style="gap:10px;margin:22px 0 14px"><span class="b small">Number of shipments: ${shipments.length}</span></div>
         <div class="grid2 shipgrid">${shipCards}</div>
         <div class="sc-foot">
           <div class="sc-foot-left">
@@ -432,7 +466,7 @@
           </div>
         </div>
       </div>`;
-    return stepShell(2, "Confirm shipping", open, done, `Destinations: ${D.SHIPMENTS.length} · Method: LTL/FTL`, body);
+    return stepShell(2, "Confirm shipping", open, done, `Destinations: ${shipments.length} · Method: LTL/FTL`, body);
   }
 
   /* --------------------------- STEP 3 --------------------------- */
@@ -440,7 +474,8 @@
     const w = W();
     const open = w.openStep === 3, done = !!w.done[3];
     const II = `<span class="info-i">i</span>`;
-    const cards = D.SHIPMENTS.map((s, idx) => `
+    const shipments = activeShipments();
+    const cards = shipments.map((s, idx) => `
       <div class="s3card">
         <div class="s3card-head">
           <span class="b small">Shipment #${s.n}</span>
@@ -473,13 +508,13 @@
         </div>
       </div>
       <div class="small" style="margin-bottom:6px">Ship from: <b>${esc(addr().oneLine)}</b></div>
-      <div class="b small" style="margin:14px 0 12px">${D.SHIPMENTS.length} confirmed shipments</div>
+      <div class="b small" style="margin:14px 0 12px">${shipments.length} confirmed shipments</div>
       <div class="s3grid">${cards}</div>
       <div class="between mt20">
         <span></span>
         <button class="btn primary" data-act="wf-confirm3" data-tour="continue-step3">Continue to carrier and pallet information</button>
       </div>`;
-    return stepShell(3, "Print box labels", open, done, `${D.SHIPMENTS.length} shipments · labels printed`, body);
+    return stepShell(3, "Print box labels", open, done, `${shipments.length} shipments · labels printed`, body);
   }
 
   /* --------------------------- STEP 4 --------------------------- */
@@ -489,7 +524,8 @@
     const open = w.openStep === 4, done = !!w.done[4];
     const II = `<span class="info-i">i</span>`;
     const tour = (idx, name) => idx === 0 ? ` data-tour="${name}"` : "";
-    const cards = D.SHIPMENTS.map((s, idx) => `
+    const shipments = activeShipments();
+    const cards = shipments.map((s, idx) => `
       <div class="s4card">
         <div class="s4card-head">
           <span class="b small">Shipment #${s.n}</span>
@@ -559,7 +595,7 @@
         <span></span>
         <button class="btn primary" data-act="wf-confirm4" data-tour="confirm-step4">Confirm shipment information</button>
       </div>`;
-    return stepShell(4, "Confirm carrier and freight information", open, done, "Carrier: FIST · 5 shipments", body);
+    return stepShell(4, "Confirm carrier and freight information", open, done, `Carrier: FIST · ${shipments.length} shipments`, body);
   }
 
   /* --------------------------- FINAL --------------------------- */
@@ -567,8 +603,9 @@
     const w = W();
     const open = w.openStep === 5, done = !!w.done[5];
     const II = `<span class="info-i">i</span>`;
-    const first = D.SHIPMENTS[0];
-    const tabs = D.SHIPMENTS.map((s, idx) => `
+    const shipments = activeShipments();
+    const first = shipments[0] || D.SHIPMENTS[0];
+    const tabs = shipments.map((s, idx) => `
       <div class="fin-tab${idx === 0 ? " on" : ""}">
         <div class="fin-tab-n">Shipment #${s.n}</div>
         <div class="fin-tab-id">Shipment ID: <b>${s.id}</b></div>
@@ -748,7 +785,7 @@
   }
 
   function boxesModal(n) {
-    const s = D.SHIPMENTS.find(x => x.n === n);
+    const s = activeShipments().find(x => x.n === n) || D.SHIPMENTS.find(x => x.n === n) || D.SHIPMENTS[0];
     const skuIdx = (W().skus && W().skus.length) ? W().skus : [0, 1];
     const boxes = Array.from({ length: s.boxes }, (_, k) => {
       const p = D.PRODUCTS[skuIdx[k % skuIdx.length]];

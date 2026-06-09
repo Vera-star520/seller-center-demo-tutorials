@@ -115,8 +115,8 @@
     <div class="bar">
       <img src="console/fbabee-logo.png" alt="FBABEE" />
       <div class="div"></div>
-      <div class="ttl">Interactive Seller Console Tutorials<span>Hands-on walkthroughs of the real backend</span></div>
-      <div class="right">Training sandbox — no real account affected</div>
+      <div class="ttl">Interactive Seller Console Tutorials<span>Step-by-step Amazon FBA workflows for sellers</span></div>
+      <div class="right">Built for FBABEE customers · Safe demo environment</div>
     </div>
 
     <div class="wrap">
@@ -151,13 +151,23 @@
       const grid = document.getElementById("libGrid");
       const catsEl = document.getElementById("libCats");
       const list = Object.values(window.TUTORIALS);
+      const libraryTutorials = list
+        .filter(t => Number.isFinite(t.libraryOrder))
+        .sort((a, b) => a.libraryOrder - b.libraryOrder);
 
-      // Featured = first live tutorial (has steps). The rest go to the grid.
+      // Featured = first live tutorial (has steps). Browse uses the same
+      // tutorial data source and filters by category, including the featured item.
       const featured = list.find(t => !!t.steps) || null;
-      const rest = list.filter(t => t !== featured);
-
-      const cats = ["All", ...Array.from(new Set(rest.map(t => t.category)))];
+      const categoryOrder = ["Inventory", "Shipments", "Account Access"];
+      const cats = ["All", ...categoryOrder.filter(c => libraryTutorials.some(t => t.category === c))];
       let activeCat = "All";
+      const homepageHeroSummary = "Walk through the full Send to Amazon flow — from selecting inventory to downloading labels, pack lists, and completing carrier details.";
+      const homepageHeroStages = [
+        "Choose inventory",
+        "Confirm shipping",
+        "Print labels & pack lists",
+        "Confirm carrier & tracking",
+      ];
 
       function esc(s) { return String(s == null ? "" : s); }
 
@@ -169,9 +179,8 @@
       }
       function renderHero(t) {
         if (!t) { heroEl.innerHTML = ""; return; }
-        const stages = heroStages(t);
-        const minutes = (t.est || "—").replace(/\s*min\b.*/i, "").trim() || "—";
-        const steps = t.steps ? t.steps.length : "—";
+        const stages = homepageHeroStages;
+        const minutes = "8–10";
         const railHtml = stages.map(s =>
           `<div class="st"><div class="gut"><i class="knob"></i><i class="line"></i></div><div class="lbl">${esc(s)}</div></div>`
         ).join("");
@@ -179,15 +188,14 @@
           <div class="L">
             <div class="badge">Most popular · Start here</div>
             <h1>${esc(t.title)}</h1>
-            <p>${esc(t.summary)}</p>
+            <p>${esc(homepageHeroSummary)}</p>
             <div class="metarow">
               <div class="mstat"><b>${esc(minutes)}</b><span>minutes</span></div>
-              <div class="mstat"><b>${esc(steps)}</b><span>steps</span></div>
               <div class="mstat"><b>${stages.length}</b><span>stages</span></div>
             </div>
             <div class="foot">
               <button class="cta" type="button">Start tutorial &#8594;</button>
-              <span class="sub">Safe sandbox · nothing real is affected</span>
+              <span class="sub">Follow each step at your own pace</span>
             </div>
           </div>
           <div class="R">
@@ -225,9 +233,8 @@
       }
 
       function renderGrid() {
-        const items = rest
-          .filter(t => activeCat === "All" || t.category === activeCat)
-          .sort((a, b) => (!!b.steps) - (!!a.steps));
+        const items = libraryTutorials
+          .filter(t => activeCat === "All" || t.category === activeCat);
         grid.innerHTML = items.length
           ? items.map(card).join("")
           : `<div class="a-empty">No tutorials in this category yet.</div>`;
