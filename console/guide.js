@@ -33,6 +33,7 @@ window.Guide = (function () {
   /* ---------------- player chrome ---------------- */
   function buildPlayer() {
     buildGroups();
+    const browserUrl = cur.url || "sellercentral.amazon.com/fba/sendtoamazon";
     host.innerHTML = `
       <div class="player" style="display:flex;flex-direction:column;height:100vh">
         <div class="tut-bar">
@@ -50,7 +51,7 @@ window.Guide = (function () {
           <div class="browser">
             <div class="chrome">
               <div class="dots"><i></i><i></i><i></i></div>
-              <div class="url"><span class="lock">&#128274;</span> sellercentral.amazon.com/fba/sendtoamazon</div>
+              <div class="url"><span class="lock">&#128274;</span> ${browserUrl}</div>
             </div>
             <div id="app"></div>
           </div>
@@ -345,13 +346,17 @@ window.Guide = (function () {
     mrow.querySelectorAll(".mcol").forEach(c => { c.classList.add("done"); c.classList.remove("active"); });
     mrow.querySelectorAll(".subpill").forEach(p => { p.classList.add("done"); p.classList.remove("active"); });
     pfill.style.width = "calc(100% - " + (100 / groups.length) + "%)";
+    const doneTitle = cur.doneTitle || "Plan complete!";
+    const doneBody = cur.doneBody || `You've walked through the full <b>${cur.title}</b> flow — from selecting inventory to entering tracking. You're ready to do it for real.`;
+    const doneChecklist = renderDoneChecklist(cur.doneChecklist);
     const scrim = document.createElement("div");
     scrim.className = "done-scrim";
     scrim.innerHTML = `
-      <div class="done-card">
+      <div class="done-card${doneChecklist ? " has-checklist" : ""}">
         <div class="seal">&#10003;</div>
-        <h2>Plan complete!</h2>
-        <p>You've walked through the full <b>${cur.title}</b> flow — from selecting inventory to entering tracking. You're ready to do it for real.</p>
+        <h2>${doneTitle}</h2>
+        <p>${doneBody}</p>
+        ${doneChecklist}
         <div class="done-actions">
           <button class="btn primary" id="gAgain">Run it again</button>
           <button class="btn ghost" id="gLib">Back to all tutorials</button>
@@ -360,6 +365,23 @@ window.Guide = (function () {
     player.appendChild(scrim);
     scrim.querySelector("#gAgain").addEventListener("click", () => { scrim.remove(); restart(); });
     scrim.querySelector("#gLib").addEventListener("click", () => { scrim.remove(); exit(); });
+  }
+
+  function renderDoneChecklist(cfg) {
+    if (!cfg) return "";
+    const groupsHtml = (cfg.groups || []).map(g => `
+      <div class="done-check-group">
+        <h3>${g.title}</h3>
+        ${g.intro ? `<p>${g.intro}</p>` : ""}
+        <ul>
+          ${(g.items || []).map(item => `<li><span>&#10003;</span>${item}</li>`).join("")}
+        </ul>
+      </div>`).join("");
+    return `
+      <div class="done-checklist">
+        <div class="done-checklist-head"><span class="done-checklist-ic">&#10003;</span><span>${cfg.title}</span></div>
+        <div class="done-checklist-grid">${groupsHtml}</div>
+      </div>`;
   }
 
   return { start, complete, exit, restart };

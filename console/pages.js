@@ -8,7 +8,9 @@
      data-tour="ck-{i}"          FBA Inventory row checkbox (per SKU index)
      data-tour="groupbar"        bottom group-action bar
      data-tour="group-action"    "Select group action" button
+     data-tour="create-removal"  "Create removal order" item in the group-action menu
      data-tour="send-fba"        "Send to FBA" item in the group-action menu
+     data-tour="removal-*"       Create Removal Order flow anchors
    ============================================================ */
 (function () {
   const A = window.App, D = window.DATA, esc = A.esc;
@@ -210,7 +212,7 @@
       <div style="position:relative">
         <button class="ga" data-act="group-toggle" data-tour="group-action">Select group action ${UCARET}</button>
         ${open ? `<div class="dropdown open" style="bottom:46px;top:auto;min-width:220px">
-          <div class="ditem disabled">Create removal order</div>
+          <div class="ditem" data-act="create-removal" data-tour="create-removal">Create removal order</div>
           <div class="ditem disabled">Print Item Labels</div>
           <div class="ditem disabled">Create sale</div>
           <div class="ditem" data-act="send-fba" data-tour="send-fba">Send to FBA</div>
@@ -222,21 +224,228 @@
   // extra inventory actions
   A.actions["group-toggle"] = () => { A.state.groupOpen = !A.state.groupOpen; A.render(); };
   A.actions["row-send"] = (ctx) => { A.state.selected.add(+ctx.el.dataset.i); A.navigate("sendfc"); };
+  A.actions["create-removal"] = () => { if (A.state.selected.size) A.navigate("removal"); };
+
+  /* ---------------------- CREATE REMOVAL ORDER ---------------------- */
+  A.initRemoval = function () {
+    let skus = [...A.state.selected];
+    if (!skus.length) skus = [4];
+    skus = skus.slice(0, 3).sort((a, b) => a - b);
+    const qty = {};
+    skus.forEach(i => { qty[i] = i === 4 ? 24 : Math.min(D.PRODUCTS[i].onhand, 12); });
+    A.state.removal = {
+      skus,
+      openStep: 1,
+      done: {},
+      method: null,
+      addressId: D.ADDRESSES[0].id,
+      addressConfirmed: false,
+      submitted: false,
+      qty,
+    };
+  };
+
+  A.applyRemovalScenario = function (r, s) {
+    if (!r) return;
+    if ("skus" in s) {
+      r.skus = (s.skus || []).slice(0, 3).sort((a, b) => a - b);
+      r.skus.forEach(i => { if (!(+r.qty[i] > 0)) r.qty[i] = i === 4 ? 24 : Math.min(D.PRODUCTS[i].onhand, 12); });
+    }
+    if ("qty" in s) Object.assign(r.qty, s.qty);
+    if ("done" in s) { r.done = {}; (s.done || []).forEach(n => { r.done[n] = true; }); }
+    if ("openStep" in s) r.openStep = s.openStep;
+    if ("method" in s) r.method = s.method;
+    if ("addressId" in s) r.addressId = s.addressId;
+    if ("addressConfirmed" in s) r.addressConfirmed = s.addressConfirmed;
+    if ("submitted" in s) r.submitted = s.submitted;
+  };
+
+  function R() {
+    if (!A.state.removal) A.initRemoval();
+    return A.state.removal;
+  }
+  function removalAddr() {
+    return D.ADDRESSES.find(a => a.id === R().addressId) || D.ADDRESSES[0];
+  }
+  function removalTotals() {
+    const r = R();
+    return r.skus.reduce((out, i) => {
+      out.units += +r.qty[i] || 0;
+      out.skus += 1;
+      return out;
+    }, { skus: 0, units: 0 });
+  }
+  function removalMethodLabel() {
+    const r = R();
+    if (r.method === "dispose") return "Dispose";
+    if (r.method === "liquidate") return "Liquidate";
+    return r.method === "return" ? "Return to address" : "Not selected";
+  }
+  function rmStepShell(n, title, isOpen, isDone, summary, body) {
+    return `
+    <div class="step ${isOpen ? "" : "collapsed"}">
+      <div class="step-bar">
+        ${isDone ? `<span class="check">&#10003;</span>` : ""}
+        <span class="stepn">Step ${n}: ${title}</span>
+        ${isDone && summary ? `<span class="summ">${summary}</span>` : ""}
+        <span class="sp">${isDone ? `<a data-act="rm-open" data-step="${n}">View / edit</a>` : ""}</span>
+      </div>
+      ${isOpen ? `<div class="step-body">${body}</div>` : ""}
+    </div>`;
+  }
+
+  A.pages.removal = function () {
+    const r = R();
+    return `
+    <div class="wf-head rm-head">
+      <div>
+        <h1 class="page-title" style="font-size:28px">Create removal order</h1>
+        <p class="page-sub">Remove sellable or unsellable FBA inventory by returning, disposing, or liquidating selected units.</p>
+      </div>
+      <div class="wf-meta"><span class="pill blue">Safe sandbox</span><span>No real account or inventory is affected</span></div>
+    </div>
+    ${r.submitted ? removalDone() : ""}
+    ${removalChooseInventory()}
+    ${removalMethod()}
+    ${removalAddress()}
+    ${removalReview()}`;
+  };
+
+  function removalChooseInventory() {
+    const r = R(), t = removalTotals();
+    const open = r.openStep === 1, done = !!r.done[1];
+    const cols = "1.7fr 110px 120px 130px";
+    const rows = r.skus.map(i => {
+      const p = D.PRODUCTS[i];
+      const qty = +r.qty[i] || 0;
+      return `
+      <div class="invrow" style="grid-template-columns:${cols}">
+        <div class="prod">
+          <div class="thumb"></div>
+          <div style="min-width:0">
+            <div class="pname">${esc(p.shortName)}</div>
+            <div class="pmeta kvline"><div>SKU: ${p.sku}</div><div>ASIN: ${p.asin}</div><div>FNSKU: ${p.fnsku}</div></div>
+          </div>
+        </div>
+        <div class="kvline"><div class="b">${p.onhand}</div><div class="muted">Available</div></div>
+        <div class="kvline"><div class="b">${p.unfulfillable}</div><div class="muted">Unsellable</div></div>
+        <div class="fld"><label>Units</label><input class="inp sm" data-input="rm-qty" data-i="${i}" value="${qty}" data-tour="removal-qty-${i}"></div>
+      </div>`;
+    }).join("");
+    const body = `
+      <div class="banner teal" data-tour="removal-safe">This sandbox creates a training-only removal order. Use real removal orders only after checking inventory status, stranded issues, and disposal/return cost rules.</div>
+      <div class="invtable rm-table" data-tour="removal-inventory">
+        <div class="invhead" style="grid-template-columns:${cols}">
+          <span>Selected inventory</span><span>Sellable units</span><span>Unsellable units</span><span>Units to remove</span>
+        </div>
+        ${rows}
+      </div>
+      <div class="between mt16">
+        <span class="small muted">Selected: <b>${t.skus}</b> SKU${t.skus > 1 ? "s" : ""} / <b>${t.units}</b> units</span>
+        <button class="btn primary" data-act="rm-confirm1" data-tour="removal-confirm-inventory">Confirm inventory</button>
+      </div>`;
+    return rmStepShell(1, "Choose inventory", open, done, `${t.skus} SKU${t.skus > 1 ? "s" : ""} / ${t.units} units`, body);
+  }
+
+  function removalMethod() {
+    const r = R();
+    const open = r.openStep === 2, done = !!r.done[2];
+    const methods = [
+      { id: "return", title: "Return to address", body: "Ship units back to your warehouse or prep partner for inspection, relabeling, or resale outside FBA." },
+      { id: "dispose", title: "Dispose", body: "Ask the fulfillment center to dispose of units that should not be returned to inventory." },
+      { id: "liquidate", title: "Liquidate", body: "Recover partial value through liquidation when available for the selected units." },
+    ].map(m => `
+      <div class="rm-method${r.method === m.id ? " on" : ""}" data-act="rm-method" data-method="${m.id}" data-tour="removal-method-${m.id}">
+        <span class="radio ${r.method === m.id ? "on" : ""}"></span>
+        <div>
+          <div class="b small">${m.title}</div>
+          <div class="tiny muted mt8">${m.body}</div>
+        </div>
+      </div>`).join("");
+    const body = `
+      <div class="small muted" style="margin-bottom:14px">Choose the removal method that matches the business reason for taking units out of FBA.</div>
+      <div class="rm-method-grid">${methods}</div>`;
+    return rmStepShell(2, "Select removal method", open, done, removalMethodLabel(), body);
+  }
+
+  function removalAddress() {
+    const r = R(), a = removalAddr();
+    const open = r.openStep === 3, done = !!r.done[3];
+    const body = `
+      <div class="rm-address" data-tour="removal-address">
+        <div>
+          <div class="b small">Return-to address</div>
+          <div class="rm-addr-name">${esc(a.company)} / ${esc(a.name)}</div>
+          <div class="small muted rm-addr-lines">${esc(a.street)}<br>${esc(a.city)}, ${esc(a.state)} ${esc(a.zip)}<br>${esc(a.country)} · ${esc(a.phone)}</div>
+        </div>
+        <span class="pill blue">Default address</span>
+      </div>
+      <div class="between mt16">
+        <span class="small muted">For return orders, confirm that this address can receive FBA returns and has a contact available.</span>
+        <button class="btn primary ${r.method ? "" : "disabled"}" data-act="rm-confirm-address" data-tour="removal-confirm-address">Use this return address</button>
+      </div>`;
+    return rmStepShell(3, "Confirm address", open, done, r.addressConfirmed ? "Return address confirmed" : "", body);
+  }
+
+  function removalReview() {
+    const r = R(), t = removalTotals();
+    const open = r.openStep === 4, done = !!r.done[4];
+    const disabled = r.addressConfirmed ? "" : "disabled";
+    const rows = [
+      ["Removal method", removalMethodLabel()],
+      ["Return address", removalAddr().oneLine],
+      ["Selected inventory", `${t.skus} SKU${t.skus > 1 ? "s" : ""}, ${t.units} units`],
+      ["Estimated processing", "10-14 business days after the order is accepted"],
+    ].map(([k, v]) => `<div class="rm-review-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("");
+    const body = `
+      <div class="rm-review" data-tour="removal-review">${rows}</div>
+      <div class="rm-note mt16">Review removal fees and destination details before submitting a real order. This demo submit button only completes the sandbox flow.</div>
+      <div class="between mt16">
+        <span></span>
+        <button class="btn primary ${disabled}" data-act="rm-submit" data-tour="removal-submit">Submit removal order</button>
+      </div>`;
+    return rmStepShell(4, "Review and submit", open, done, r.submitted ? "Submitted" : "", body);
+  }
+
+  function removalDone() {
+    return `
+    <div class="rm-done" data-tour="removal-done">
+      <div class="seal">&#10003;</div>
+      <div>
+        <div class="b">Removal order submitted</div>
+        <div class="small muted mt8">Sandbox order RMV-2026-0608 is now ready for tracking. In a real workflow, monitor status until units are returned, disposed, or liquidated.</div>
+      </div>
+    </div>`;
+  }
+
+  Object.assign(A.actions, {
+    "input:rm-qty": (ctx) => {
+      const i = +ctx.el.dataset.i;
+      const v = ctx.value.replace(/[^0-9]/g, "");
+      R().qty[i] = v ? +v : 0;
+      A.render();
+    },
+    "rm-open": (ctx) => { R().openStep = +ctx.el.dataset.step; A.render(); },
+    "rm-confirm1": () => { R().done[1] = true; R().openStep = 2; A.render(); },
+    "rm-method": (ctx) => { R().method = ctx.el.dataset.method; R().done[2] = true; R().openStep = 3; A.render(); },
+    "rm-confirm-address": () => { if (!R().method) return; R().addressConfirmed = true; R().done[3] = true; R().openStep = 4; A.render(); },
+    "rm-submit": () => { if (!R().addressConfirmed) return; R().submitted = true; R().done[4] = true; A.render(); },
+  });
 
   /* -------------------------- SHIPMENTS QUEUE -------------------------- */
   A.pages.shipments = function () {
     // [name, refId, created, createdTime, updated, updatedTime, shipTo, deliveryWin, skus, units, located, status, work]
     const sh = [
-      ["FBA STA (04/09/2026 03:02)-TPA2", "FBA19B8GHRMD, 6MMNWZHF", "Apr 9, 2026", "11:01 AM", "Jun 6, 2026", "1:25 PM", "TPA2", "Jun 7 – Jun 13, 2026", 4, 40, "40, 40", "Closed", false],
-      ["FBA ASDN (06/06/2026 05:03)-TEB6", "FBA19FNYFXSS, 1PF6ZIQF", "Jun 6, 2026", "1:03 PM", "Jun 6, 2026", "1:10 PM", "TEB6", "Jun 7 – Jun 13, 2026", 1, 1, "0, 0", "Shipped", false],
-      ["FBA ASDN (06/06/2026 05:03)-TEB6", "FBA19FNZ4SH5, 37T1NDTL", "Jun 6, 2026", "1:03 PM", "Jun 6, 2026", "1:10 PM", "TEB6", "Jun 7 – Jun 13, 2026", 1, 2, "0, 0", "Shipped", false],
-      ["FBA STA (05/22/2026 12:33)-FAT2", "FBA19DSM9B9L, 78HZ9BAD", "May 22, 2026", "8:33 PM", "Jun 6, 2026", "10:49 AM", "FAT2", "Jun 21 – Jun 27, 2026", 5, 31, "0, 0", "In transit", false],
-      ["FBA STA (04/23/2026 03:41)-SNA4", "FBA19C2B28BL, 1YEKKFNR", "Apr 23, 2026", "11:41 AM", "Jun 6, 2026", "7:03 AM", "SNA4", "May 24 – May 30, 2026", 5, 21, "21, 20", "Closed", false],
-      ["FBA STA (04/09/2026 03:02)-TEB4", "FBA19B8H5PSX, 3PP3HGWL", "Apr 9, 2026", "11:01 AM", "Jun 6, 2026", "3:18 AM", "TEB4", "May 31 – Jun 6, 2026", 4, 40, "40, 7", "Receiving", false],
-      ["FBA STA (06/05/2026 03:56)-SAT1", "FBA19FLZ8084, 4PYA4KSP", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "SAT1", "Jul 12 – Jul 18, 2026", 3, 21, "0, 0", "Working", true],
-      ["FBA STA (06/05/2026 03:56)-MCO2", "FBA19FM1H4QW, 7MF6QVYT", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "MCO2", "Jul 12 – Jul 18, 2026", 5, 27, "0, 0", "Working", true],
-      ["FBA STA (06/05/2026 03:56)-MDT4", "FBA19FM1GXP5, 7289KRTK", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "MDT4", "Jul 12 – Jul 18, 2026", 5, 28, "0, 0", "Working", true],
-      ["FBA ASDN (06/04/2026 22:17)-BOS7", "FBA19FLCM820, 6SUZSDXO", "Jun 5, 2026", "6:17 AM", "Jun 5, 2026", "6:23 AM", "BOS7", "Jun 7 – Jun 13, 2026", 1, 2, "0, 0", "Shipped", false],
+      ["FBA STA (04/09/2026 03:02)-TPA2", "SAMPLE-TPA2-001, REF-TPA2-001", "Apr 9, 2026", "11:01 AM", "Jun 6, 2026", "1:25 PM", "TPA2", "Jun 7 – Jun 13, 2026", 4, 40, "40, 40", "Closed", false],
+      ["FBA ASDN (06/06/2026 05:03)-TEB6", "SAMPLE-TEB6-002, REF-TEB6-002", "Jun 6, 2026", "1:03 PM", "Jun 6, 2026", "1:10 PM", "TEB6", "Jun 7 – Jun 13, 2026", 1, 1, "0, 0", "Shipped", false],
+      ["FBA ASDN (06/06/2026 05:03)-TEB6", "SAMPLE-TEB6-003, REF-TEB6-003", "Jun 6, 2026", "1:03 PM", "Jun 6, 2026", "1:10 PM", "TEB6", "Jun 7 – Jun 13, 2026", 1, 2, "0, 0", "Shipped", false],
+      ["FBA STA (05/22/2026 12:33)-FAT2", "SAMPLE-FAT2-004, REF-FAT2-004", "May 22, 2026", "8:33 PM", "Jun 6, 2026", "10:49 AM", "FAT2", "Jun 21 – Jun 27, 2026", 5, 31, "0, 0", "In transit", false],
+      ["FBA STA (04/23/2026 03:41)-SNA4", "SAMPLE-SNA4-005, REF-SNA4-005", "Apr 23, 2026", "11:41 AM", "Jun 6, 2026", "7:03 AM", "SNA4", "May 24 – May 30, 2026", 5, 21, "21, 20", "Closed", false],
+      ["FBA STA (04/09/2026 03:02)-TEB4", "SAMPLE-TEB4-006, REF-TEB4-006", "Apr 9, 2026", "11:01 AM", "Jun 6, 2026", "3:18 AM", "TEB4", "May 31 – Jun 6, 2026", 4, 40, "40, 7", "Receiving", false],
+      ["FBA STA (06/05/2026 03:56)-SAT1", "SAMPLE-SAT1-007, REF-SAT1-007", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "SAT1", "Jul 12 – Jul 18, 2026", 3, 21, "0, 0", "Working", true],
+      ["FBA STA (06/05/2026 03:56)-MCO2", "SAMPLE-MCO2-008, REF-MCO2-008", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "MCO2", "Jul 12 – Jul 18, 2026", 5, 27, "0, 0", "Working", true],
+      ["FBA STA (06/05/2026 03:56)-MDT4", "SAMPLE-MDT4-009, REF-MDT4-009", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "MDT4", "Jul 12 – Jul 18, 2026", 5, 28, "0, 0", "Working", true],
+      ["FBA ASDN (06/04/2026 22:17)-BOS7", "SAMPLE-BOS7-010, REF-BOS7-010", "Jun 5, 2026", "6:17 AM", "Jun 5, 2026", "6:23 AM", "BOS7", "Jun 7 – Jun 13, 2026", 1, 2, "0, 0", "Shipped", false],
     ];
     const cols = "1.95fr 96px 100px 1.15fr 56px 1.05fr 92px 150px";
     const rows = sh.map(s => {

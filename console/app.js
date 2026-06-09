@@ -14,6 +14,7 @@ window.App = (function () {
     selected: new Set(),           // selected SKU indices on FBA Inventory
     modal: null,                   // {render: fn} or null
     wizard: null,                  // created when entering Send to FC
+    removal: null,                 // created when entering Create Removal Order
   };
 
   // ---- tiny helpers ----
@@ -87,7 +88,9 @@ window.App = (function () {
   function fbanav() {
     const inv = state.openNav === "inventory";
     const shp = state.openNav === "shipments";
-    const on = (p) => ["inventory", "sendfc"].includes(state.page) && p === "inv" || (state.page === "shipments" && p === "shp");
+    const on = (p) =>
+      (["inventory", "removal"].includes(state.page) && p === "inv") ||
+      (["shipments", "sendfc"].includes(state.page) && p === "shp");
     const caret = `<svg class="caret" viewBox="0 0 11 7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M1 1l4.5 4.5L10 1"/></svg>`;
     return `
     <div class="fbanav">
@@ -137,6 +140,10 @@ window.App = (function () {
       if (!state.wizard) App.initWizard();
       if (App.applyWizardScenario) App.applyWizardScenario(state.wizard, spec.wizard);
     }
+    if (spec.removal) {
+      if (!state.removal && App.initRemoval) App.initRemoval();
+      if (App.applyRemovalScenario) App.applyRemovalScenario(state.removal, spec.removal);
+    }
     if ("modal" in spec) state.modal = (spec.modal && App.scenarioModal) ? App.scenarioModal(spec.modal) : null;
     render();
   }
@@ -148,6 +155,7 @@ window.App = (function () {
     state.menuOpen = false;
     state.menuExpand = null;
     if (page === "sendfc" && !state.wizard) App.initWizard();
+    if (page === "removal" && !state.removal && App.initRemoval) App.initRemoval();
     render();
   }
 
@@ -158,14 +166,14 @@ window.App = (function () {
 
   function render() {
     if (!root) return;
-    const showFbaNav = ["inventory", "shipments", "sendfc", "awd"].includes(state.page);
+    const showFbaNav = ["inventory", "shipments", "sendfc", "removal", "awd"].includes(state.page);
     const pageFn = App.pages[state.page] || App.pages.home;
     root.innerHTML = `
       <div class="console">
         ${topbar()}
         ${showFbaNav ? subbar() : ""}
         ${showFbaNav ? fbanav() : ""}
-        <div class="page ${state.page === "sendfc" || state.page === "inventory" ? "full" : ""}" id="pageScroll">
+        <div class="page ${state.page === "sendfc" || state.page === "inventory" || state.page === "removal" ? "full" : ""}" id="pageScroll">
           <div class="page-inner">${pageFn()}</div>
         </div>
       </div>`;
@@ -244,7 +252,7 @@ window.App = (function () {
     setRoot: function (el) { root = el; },
     reset: function () {
       state.page = "home"; state.openNav = null; state.menuOpen = false; state.menuExpand = null;
-      state.selected.clear(); state.groupOpen = false; state.modal = null; state.wizard = null;
+      state.selected.clear(); state.groupOpen = false; state.modal = null; state.wizard = null; state.removal = null;
     },
     pages: {}, actions: Object.assign({}, baseActions),
     D,

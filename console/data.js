@@ -8,11 +8,11 @@
   // ship-from addresses
   const ADDRESSES = [
     {
-      id: "werner", company: "FBABEE", name: "Werner",
+      id: "werner", company: "FBABEE", name: "FBABEE",
       street: "Bld, #2 Haoyuntong Park Science and Technology Park",
       city: "Dongguan", district: "Tangxia", state: "Guangdong",
       zip: "523710", country: "China", phone: "+86 769 8100 0920", isDefault: true,
-      oneLine: "Werner, Bld, #2 Haoyuntong Park Science and Technology Park, Dongguan, Guangdong, 523710, CN",
+      oneLine: "FBABEE, Bld, #2 Haoyuntong Park Science and Technology Park, Dongguan, Guangdong, 523710, CN",
     },
     {
       id: "fbabee", company: "FBABEE", name: "FBABEE Warehouse",
@@ -96,28 +96,28 @@
   const PLACEMENTS = [
     {
       id: "optimized", name: "Amazon-optimized", lowest: true,
-      desc: "5 shipments, DEN8 (Aurora, CO), DFW6 (Coppell, TX), ILG1 (New Castle, DE), OAK3 (Patterson, CA), LIT2 (North Little Rock, AR)",
+      desc: "5 shipments: DEN8 (12 boxes, Aurora, CO), DFW6 (12 boxes, Coppell, TX), ILG1 (8 boxes, New Castle, DE), OAK3 (4 boxes, Patterson, CA), LIT2 (4 boxes, North Little Rock, AR)",
       window: "Starting Jul 12 – Jul 18, 2026", total: "$360.81", placement: "$0.00", shipping: "$360.81",
     },
     {
       id: "partial", name: "Partial Splits  (Any Region)", lowest: false,
-      desc: "3 shipments, ILG1 (New Castle, DE), OAK3 (Patterson, CA), DEN8 (Aurora, CO)",
+      desc: "3 shipments: ILG1 (16 boxes, New Castle, DE), OAK3 (12 boxes, Patterson, CA), DEN8 (12 boxes, Aurora, CO)",
       window: "Jul 12 – Jul 18, 2026", total: "$381.59", placement: "$63.00", shipping: "$318.59",
     },
     {
       id: "minimal", name: "Minimal Splits  (Any Region)", lowest: false,
-      desc: "1 shipment, SCK8 (Oakley, CA)",
+      desc: "1 shipment: SCK8 (40 boxes, Oakley, CA)",
       window: "Jul 12 – Jul 18, 2026", total: "$466.34", placement: "$266.40", shipping: "$199.94",
     },
   ];
 
   // Step 2-4 shipment breakdown (for the 2 selected SKUs, optimized into 5 FCs)
   const SHIPMENTS = [
-    { n: 1, fc: "DEN8", id: "FBA19FLZ8084", ref: "4PYA4KSP", addr: "21000 E 13th Ave. 80018 — Aurora, CO — United States", boxes: 12, skus: 2, units: 12 },
-    { n: 2, fc: "DFW6", id: "FBA19FLXKD76", ref: "—", addr: "940 W Bethel Road 75019-4424 — Coppell, TX — United States", boxes: 12, skus: 2, units: 12 },
-    { n: 3, fc: "ILG1", id: "FBA19FM1GXP5", ref: "—", addr: "780 S. DuPont Highway 19720-4610 — New Castle, DE — United States", boxes: 8, skus: 2, units: 8 },
-    { n: 4, fc: "OAK3", id: "FBA19FM170C0", ref: "—", addr: "255 Park Center Drive 95363-8876 — Patterson, CA — United States", boxes: 4, skus: 2, units: 4 },
-    { n: 5, fc: "LIT2", id: "FBA19FM1H4QW", ref: "—", addr: "13001 Highway 70 72117-5026 — North Little Rock, AR — United States", boxes: 4, skus: 2, units: 4 },
+    { n: 1, fc: "DEN8", id: "FBA15ABC12345", ref: "FBABEE01", addr: "21000 E 13th Ave. 80018 — Aurora, CO — United States", boxes: 12, skus: 2, units: 12 },
+    { n: 2, fc: "DFW6", id: "FBA16DEF67890", ref: "—", addr: "940 W Bethel Road 75019-4424 — Coppell, TX — United States", boxes: 12, skus: 2, units: 12 },
+    { n: 3, fc: "ILG1", id: "FBA17GHI24680", ref: "—", addr: "780 S. DuPont Highway 19720-4610 — New Castle, DE — United States", boxes: 8, skus: 2, units: 8 },
+    { n: 4, fc: "OAK3", id: "FBA18JKL13579", ref: "—", addr: "255 Park Center Drive 95363-8876 — Patterson, CA — United States", boxes: 4, skus: 2, units: 4 },
+    { n: 5, fc: "LIT2", id: "FBA19MNO86420", ref: "—", addr: "13001 Highway 70 72117-5026 — North Little Rock, AR — United States", boxes: 4, skus: 2, units: 4 },
   ];
 
   window.DATA = { STORE, ADDRESSES, PRODUCTS: P, PLACEMENTS, SHIPMENTS };

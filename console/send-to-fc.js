@@ -7,14 +7,30 @@
    console/tutorials/ first; verified by console/_smoke.js):
      data-tour="qty-{i}"          Step 1 boxes input (per SKU index)
      data-tour="packing-{i}"      Step 1 packing-details dropdown (per SKU)
+     data-tour="ship-from-address" Step 1 ship-from address area
      data-tour="ship-from"        Step 1 "Ship from another address" link
+     data-tour="marketplace-destination" Step 1 marketplace destination field
+     data-tour="package-template-{i}" Step 1 package-template area (per SKU)
+     data-tour="packing-form"     Packing modal full template form
+     data-tour="save-template"    Packing modal "Save" button
      data-tour="confirm-step1"    Step 1 "Confirm and continue"
      data-tour="mode-{id}"        Step 2 shipping-mode card (agl|send|own)
+     data-tour="placement-shipping-mode" Step 2 placement shipping-mode select
+     data-tour="delivery-window"  Step 2 delivery-window selector
      data-tour="placement-{id}"   Step 2 placement option row
+     data-tour="placement-options-capture" Step 2 area customers should screenshot
      data-tour="confirm-step2"    Step 2 "Confirm shipping destinations"
+     data-tour="label-format"     Step 3 first shipment label-format select
      data-tour="print-labels"     Step 3 first shipment "Print" button
+     data-tour="view-edit-contents" Step 3 first shipment "View or edit contents" link
+     data-tour="print-pack-list"  Box-contents modal "Print pack list.csv" button
      data-tour="continue-step3"   Step 3 "Continue to carrier…"
+     data-tour="carrier-type"     Step 4 first shipment carrier-type field
+     data-tour="transportation-method" Step 4 first shipment transportation field
+     data-tour="delivery-window-step4" Step 4 first shipment delivery-window section
+     data-tour="pallet-information" Step 4 first shipment pallet-information section
      data-tour="confirm-step4"    Step 4 "Confirm shipment information"
+     data-tour="pro-freight-number" Final step PRO/freight bill number input
      data-tour="save-tracking"    Final step "Save"
      data-tour="pack-upb"         Packing modal "Units per box" field
      data-tour="box-weight"       Box-contents modal first box weight field
@@ -143,7 +159,7 @@
           ${p.awd ? `<span class="tag-awd" style="margin-top:6px">AWD eligible</span>` : ""}
         </div></div>
         <div>
-          <div class="pack-cell">
+          <div class="pack-cell"${i < 2 ? ` data-tour="package-template-${i}"` : ""}>
             <button class="dropbtn" style="flex:1" tabindex="-1">${p.asin} ${DCARET}</button>
             <button class="pen-edit eye-view" data-act="wf-packing" data-i="${i}" title="Preview packing details" aria-label="Preview packing details">${EYE}</button>
           </div>
@@ -173,7 +189,7 @@
           ${p.awd ? `<span class="tag-awd" style="margin-top:6px">AWD eligible</span>` : ""}
         </div></div>
         <div>
-          <div class="pack-cell">
+          <div class="pack-cell"${i < 2 ? ` data-tour="package-template-${i}"` : ""}>
             <button class="dropbtn" data-act="wf-packing" data-i="${i}"${i < 2 ? ` data-tour="packing-${i}"` : ""} style="flex:1">${p.asin} ${DCARET}</button>
             <button class="pen-edit" data-act="wf-packing" data-i="${i}" title="Edit packing details" aria-label="Edit packing details">${PENCIL}</button>
           </div>
@@ -221,12 +237,12 @@
       const body = `
         ${tabs}
         <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:48px;margin:4px 0 24px;align-items:start;max-width:920px">
-          <div>
+          <div data-tour="ship-from-address">
             <div class="b small" style="margin-bottom:9px">Ship from ${II}</div>
             <div class="small muted" style="line-height:1.6;max-width:380px">${esc(addr().oneLine)}</div>
             <a class="small" data-act="wf-shipfrom" data-tour="ship-from" style="display:inline-block;margin-top:6px">Ship from another address</a>
           </div>
-          <div>
+          <div data-tour="marketplace-destination">
             <div class="b small" style="margin-bottom:9px">Marketplace destination ${II}</div>
             <select class="sel" data-change="dest" style="max-width:300px"><option>United States</option><option>Canada</option><option>Mexico</option></select>
           </div>
@@ -254,13 +270,13 @@
           <label class="row" style="gap:8px;margin-bottom:7px;cursor:pointer"><span class="radio on"></span><span class="small">Select from list</span></label>
           <label class="row" style="gap:8px;cursor:pointer"><span class="radio"></span><span class="small">File upload</span></label>
         </div>
-        <div>
+        <div data-tour="ship-from-address">
           <div class="b small" style="margin-bottom:9px">Ship from ${II}</div>
           <div class="small muted" style="line-height:1.55">${esc(addr().oneLine)}</div>
           <a class="small" data-act="wf-shipfrom" data-tour="ship-from">Ship from another address</a>
         </div>
         <div class="row" style="gap:28px;align-items:start">
-          <div class="fld" style="max-width:200px;flex:1"><label>Marketplace destination ${II}</label><select class="sel" data-change="dest"><option>United States</option><option>Canada</option><option>Mexico</option></select></div>
+          <div class="fld" data-tour="marketplace-destination" style="max-width:200px;flex:1"><label>Marketplace destination ${II}</label><select class="sel" data-change="dest"><option>United States</option><option>Canada</option><option>Mexico</option></select></div>
           <div>
             <div class="b small" style="margin-bottom:9px">Filter</div>
             <label class="row" style="gap:8px;margin-bottom:7px;cursor:pointer"><span class="checkbox"></span><span class="tiny">Only show SKUs with case pack template</span></label>
@@ -390,28 +406,30 @@
     const body = `
       <div class="b small" style="margin-bottom:12px">Shipping mode</div>
       <div class="smode-grid">${modeCards}</div>
-      <div class="b" style="font-size:17px;margin:30px 0 8px">Choose placement option</div>
-      <div class="row" style="gap:18px;margin:16px 0;flex-wrap:wrap">
-        <select class="sel" style="width:250px"><option>Small parcel delivery (SPD)</option><option>Less than truck load (LTL)</option></select>
-        <span class="b small">Delivery window ${II}</span>
-        <span class="date-pill">${CALIC} Jul 12 – Jul 18, 2026</span>
-      </div>
-      <div class="plc-table">
-        <div class="plc-head"><span></span><span>Placement options</span><span>Delivery window</span><span>Total cost (shipping estimated) ${II}</span></div>
-        ${placements}
-      </div>
-      <div class="row" style="gap:10px;margin:22px 0 14px"><span class="b small">Number of shipments: ${D.SHIPMENTS.length}</span></div>
-      <div class="grid2 shipgrid">${shipCards}</div>
-      <div class="sc-foot">
-        <div class="sc-foot-left">
-          <div class="b small" style="margin-bottom:6px">Ready to continue?</div>
-          <div class="small muted" style="line-height:1.55;max-width:470px">Before we generate the shipping labels for you, take a moment to review the details and check that all is correct.</div>
+      <div data-tour="placement-options-capture">
+        <div class="b" style="font-size:17px;margin:30px 0 8px">Choose placement option</div>
+        <div class="row" style="gap:18px;margin:16px 0;flex-wrap:wrap">
+          <select class="sel" data-tour="placement-shipping-mode" style="width:250px"><option>Small parcel delivery (SPD)</option><option>Less than truck load (LTL)</option></select>
+          <span class="b small">Delivery window ${II}</span>
+          <span class="date-pill" data-tour="delivery-window">${CALIC} Jul 12 – Jul 18, 2026</span>
         </div>
-        <div class="sc-foot-right">
-          <div class="plc-line"><span class="small muted">Total placement fees:</span><span class="small">$0.00</span></div>
-          <div class="plc-line"><span class="small muted">Total estimated shipping fees:</span><span class="small">$0.00</span></div>
-          <div class="plc-line" style="margin-top:8px"><span class="b small">Total estimated placement and shipping fees (other fees may apply):</span><span class="b small">$0.00</span></div>
-          <button class="btn primary ${w.placement ? "" : "disabled"}" data-act="wf-confirm2" data-tour="confirm-step2" style="margin-top:16px;width:100%">Confirm shipping destinations</button>
+        <div class="plc-table">
+          <div class="plc-head"><span></span><span>Placement options</span><span>Delivery window</span><span>Total cost (shipping estimated) ${II}</span></div>
+          ${placements}
+        </div>
+        <div class="row" style="gap:10px;margin:22px 0 14px"><span class="b small">Number of shipments: ${D.SHIPMENTS.length}</span></div>
+        <div class="grid2 shipgrid">${shipCards}</div>
+        <div class="sc-foot">
+          <div class="sc-foot-left">
+            <div class="b small" style="margin-bottom:6px">Ready to continue?</div>
+            <div class="small muted" style="line-height:1.55;max-width:470px">Before we generate the shipping labels for you, take a moment to review the details and check that all is correct.</div>
+          </div>
+          <div class="sc-foot-right">
+            <div class="plc-line"><span class="small muted">Total placement fees:</span><span class="small">$0.00</span></div>
+            <div class="plc-line"><span class="small muted">Total estimated shipping fees:</span><span class="small">$0.00</span></div>
+            <div class="plc-line" style="margin-top:8px"><span class="b small">Total estimated placement and shipping fees (other fees may apply):</span><span class="b small">$0.00</span></div>
+            <button class="btn primary ${w.placement ? "" : "disabled"}" data-act="wf-confirm2" data-tour="confirm-step2" style="margin-top:16px;width:100%">Confirm shipping destinations</button>
+          </div>
         </div>
       </div>`;
     return stepShell(2, "Confirm shipping", open, done, `Destinations: ${D.SHIPMENTS.length} · Method: LTL/FTL`, body);
@@ -426,7 +444,7 @@
       <div class="s3card">
         <div class="s3card-head">
           <span class="b small">Shipment #${s.n}</span>
-          <a class="s3edit" data-act="wf-boxes" data-n="${s.n}">${PENCIL}<span>View or edit contents</span></a>
+          <a class="s3edit" data-act="wf-boxes" data-n="${s.n}"${idx === 0 ? ' data-tour="view-edit-contents"' : ''}>${PENCIL}<span>View or edit contents</span></a>
         </div>
         <div class="s3card-body">
           <div class="s3kv"><span class="k">Shipment name:</span> <b>${esc(shipName(s))}</b> <a class="s3rename">Rename</a></div>
@@ -441,7 +459,7 @@
           </div>
           <div class="b small s3print-h">Print box labels</div>
           <div class="s3print">
-            <select class="sel sm" style="height:36px;flex:1"><option>Thermal printing — 4 × 6 inches</option><option>Letter — paper</option></select>
+            <select class="sel sm" style="height:36px;flex:1"${idx === 0 ? ' data-tour="label-format"' : ''}><option>Thermal printing — 4 × 6 inches</option><option>Letter — paper</option></select>
             <button class="btn primary sm" data-act="wf-print" data-n="${s.n}"${idx === 0 ? ' data-tour="print-labels"' : ''}>Print</button>
           </div>
         </div>
@@ -470,6 +488,7 @@
     const w = W();
     const open = w.openStep === 4, done = !!w.done[4];
     const II = `<span class="info-i">i</span>`;
+    const tour = (idx, name) => idx === 0 ? ` data-tour="${name}"` : "";
     const cards = D.SHIPMENTS.map((s, idx) => `
       <div class="s4card">
         <div class="s4card-head">
@@ -496,12 +515,12 @@
             <div class="small muted" style="margin-bottom:14px">Tracking information must be provided</div>
             <label class="row s4ck"><span class="checkbox"></span><span class="small">I want to ship with FIST carrier only ${II}</span></label>
             <div class="grid2 s4carrier">
-              <div class="fld"><label class="small">Non-Amazon partnered carrier</label><select class="sel sm"><option>FIST Carriers</option><option>Other</option></select></div>
-              <div class="fld"><label class="small">How will they be transported?</label><select class="sel sm"><option>Ocean</option><option>Air</option><option>Ground</option></select></div>
+              <div class="fld"${tour(idx, "carrier-type")}><label class="small">Non-Amazon partnered carrier</label><select class="sel sm"><option>FIST Carriers</option><option>FBABEE (ShipTrack)</option><option>Other</option></select></div>
+              <div class="fld"${tour(idx, "transportation-method")}><label class="small">How will they be transported?</label><select class="sel sm"><option>Ocean</option><option>Air</option><option>Ground</option></select></div>
             </div>
           </div>
         </div>
-        <div class="s4sec">
+        <div class="s4sec"${tour(idx, "delivery-window-step4")}>
           <div class="s4sechead"><span class="b small">Delivery window</span>${CARETUP}</div>
           <div class="s4secbody">
             <div class="small muted s4dw-desc">Delivery Window is a calendar week when you expect your shipments to arrive at Amazon. Shipments arriving within their scheduled windows will receive priority processing, while shipments arriving outside of their scheduled delivery windows may face appointment and receive delays. <a>Learn more</a></div>
@@ -521,7 +540,7 @@
             </div>` : ""}
           </div>
         </div>
-        <div class="s4sec">
+        <div class="s4sec"${tour(idx, "pallet-information")}>
           <div class="s4sechead"><span class="small">Pallet information:</span>${CARETUP}</div>
           <div class="s4secbody">
             <div class="row s4pallet"><span class="small">How many pallets will you be shipping?</span><input class="inp sm" aria-label="Number of pallets"></div>
@@ -569,7 +588,7 @@
           <div class="fin-bol-h">Track by Bill of Lading (BOL) Number:</div>
           <label class="fin-opt"><span class="radio on"></span><span class="small">Shipment ID ${first.id} (recommended)</span></label>
           <label class="fin-opt"><span class="radio"></span><span class="small fin-opt-lbl">Other</span><input class="inp fin-disabled" disabled value="Go to Shipment Summary to provide alternative BOL"></label>
-          <div class="fin-pro-row"><label>PRO/freight bill number:</label><input class="inp" placeholder="Auto-filled if you ship with FIST carriers"></div>
+          <div class="fin-pro-row" data-tour="pro-freight-number"><label>PRO/freight bill number:</label><input class="inp" placeholder="Auto-filled if you ship with FIST carriers"></div>
           <button class="btn primary" data-act="wf-finish" data-tour="save-tracking">Save</button>
         </div>
         <div>
@@ -612,6 +631,7 @@
     "wf-finish": () => { W().done[5] = true; A.render(); if (window.Guide) Guide.complete(); },
     "wf-shipfrom": () => A.openModal(shipFromModal()),
     "wf-packing": (ctx) => A.openModal(packingModal(+ctx.el.dataset.i)),
+    "wf-packing-save": () => A.closeModal(),
     "wf-boxes": (ctx) => A.openModal(boxesModal(+ctx.el.dataset.n)),
     "wf-print": () => {},
     "wf-pick-addr": (ctx) => { W().addrId = ctx.el.dataset.id; A.closeModal(); },
@@ -707,21 +727,23 @@
             ${p.awd ? `<span class="tag-awd" style="margin-top:8px">AWD eligible</span>` : ""}
           </div>
         </div>
-        <div class="fld" style="max-width:340px;margin-bottom:16px"><label>Packing template name ${IGLYPH}</label><input class="inp" value="${p.asin}"></div>
-        <div class="fld" style="max-width:240px;margin-bottom:18px"><label>Template type ${IGLYPH}</label><select class="sel"><option>Case pack</option><option>Individual units</option></select></div>
-        <div class="row" style="gap:24px;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap">
-          <div class="fld" style="width:120px"><label>Units per box ${IGLYPH}</label><input class="inp" value="${p.unitsPerBox}" data-tour="pack-upb"></div>
-          <div class="fld"><label>Box dimensions (inch)</label><div class="row" style="gap:8px;align-items:center"><input class="inp" style="width:72px" value="${p.boxDims[0]}"><span class="muted">x</span><input class="inp" style="width:72px" value="${p.boxDims[1]}"><span class="muted">x</span><input class="inp" style="width:72px" value="${p.boxDims[2]}"></div></div>
-          <div class="fld" style="width:150px"><label>Box weight (lb) ${IGLYPH}</label><input class="inp" value="${p.boxWeight}"></div>
-        </div>
-        <div style="margin-bottom:18px">
-          <div class="b small" style="margin-bottom:5px">Prep category:</div>
-          <div style="color:var(--teal-700);font-weight:600;font-size:13px;margin-bottom:7px">No prep needed</div>
-          <div class="small" style="line-height:1.5">Manufacturer barcode required ${IGLYPH}<br><span class="muted">(No additional labeling needed)</span></div>
-          <div class="tiny muted" style="margin-top:9px;line-height:1.5">Amazon does not provide prep service in this region.</div>
+        <div data-tour="packing-form">
+          <div class="fld" style="max-width:340px;margin-bottom:16px"><label>Packing template name ${IGLYPH}</label><input class="inp" value="${p.asin}"></div>
+          <div class="fld" style="max-width:240px;margin-bottom:18px"><label>Template type ${IGLYPH}</label><select class="sel"><option>Case pack</option><option>Individual units</option></select></div>
+          <div class="row" style="gap:24px;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap">
+            <div class="fld" style="width:120px"><label>Units per box ${IGLYPH}</label><input class="inp" value="${p.unitsPerBox}" data-tour="pack-upb"></div>
+            <div class="fld"><label>Box dimensions (inch)</label><div class="row" style="gap:8px;align-items:center"><input class="inp" style="width:72px" value="${p.boxDims[0]}"><span class="muted">x</span><input class="inp" style="width:72px" value="${p.boxDims[1]}"><span class="muted">x</span><input class="inp" style="width:72px" value="${p.boxDims[2]}"></div></div>
+            <div class="fld" style="width:150px"><label>Box weight (lb) ${IGLYPH}</label><input class="inp" value="${p.boxWeight}"></div>
+          </div>
+          <div style="margin-bottom:18px">
+            <div class="b small" style="margin-bottom:5px">Prep category:</div>
+            <div style="color:var(--teal-700);font-weight:600;font-size:13px;margin-bottom:7px">No prep needed</div>
+            <div class="small" style="line-height:1.5">Manufacturer barcode required ${IGLYPH}<br><span class="muted">(No additional labeling needed)</span></div>
+            <div class="tiny muted" style="margin-top:9px;line-height:1.5">Amazon does not provide prep service in this region.</div>
+          </div>
         </div>
       </div>
-      <div class="modal-foot"><a class="small" style="margin-right:auto" data-act="close-modal">Delete packing template</a><button class="btn dark" data-act="close-modal">Close</button><button class="btn disabled" disabled>Save</button></div>
+      <div class="modal-foot"><a class="small" style="margin-right:auto" data-act="close-modal">Delete packing template</a><button class="btn dark" data-act="close-modal">Close</button><button class="btn primary" data-act="wf-packing-save" data-tour="save-template">Save</button></div>
     </div>`);
   }
 
@@ -777,7 +799,7 @@
             <div class="bx-sline">SKUs with expiration date: <b>0</b> (0 units)</div>
             <div class="bx-sline">SKUs that need labeling by seller: <b>0</b> (0 units)</div>
             <div class="bx-sline">SKUs that need prepping by seller: <b>${s.skus}</b> (${s.units} units)</div>
-            <button class="btn dark split" style="margin-top:12px;align-self:flex-start">Print pack list.csv <span class="div"></span>${DCARET}</button>
+            <button class="btn dark split" data-tour="print-pack-list" style="margin-top:12px;align-self:flex-start">Print pack list.csv <span class="div"></span>${DCARET}</button>
           </div>
         </div>
         <div class="bx-tabs">

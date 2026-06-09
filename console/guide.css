@@ -115,6 +115,8 @@
 .coach p b { color: var(--g-indigo); font-weight: 700; }
 .coach .tip { display: flex; gap: 8px; align-items: flex-start; margin-top: 11px; padding: 9px 11px; background: #f6f7fd; border-radius: 11px; font-size: 11.5px; line-height: 1.42; color: #5a607c; }
 .coach .tip .b { flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--g-orange); color: #fff; display: grid; place-items: center; font-size: 10.5px; }
+.coach .tip .tip-lines { display: grid; gap: 3px; min-width: 0; margin-top: 5px; }
+.coach .tip .tip-lines div { overflow-wrap: anywhere; }
 .coach .actions { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
 .coach .actions .sp { flex: 1; }
 .coach .cue { display: inline-flex; align-items: center; gap: 7px; font-size: 11.5px; font-weight: 700; color: var(--g-orange-600); }
@@ -163,17 +165,35 @@
 
 /* ---------- completion overlay ---------- */
 .done-scrim { position: fixed; inset: 0; z-index: 9700; background: rgba(23,27,58,0.62); display: flex; align-items: center; justify-content: center; padding: 24px; }
-.done-card { background: #fff; border-radius: 20px; width: 100%; max-width: 460px; padding: 40px 38px; text-align: center; box-shadow: 0 30px 80px -20px rgba(0,0,0,0.5); }
+.done-card { background: #fff; border-radius: 20px; width: 100%; max-width: 460px; max-height: calc(100vh - 48px); overflow: auto; padding: 40px 38px; text-align: center; box-shadow: 0 30px 80px -20px rgba(0,0,0,0.5); }
+.done-card.has-checklist { max-width: 640px; padding: 34px 38px 36px; }
 .done-card .seal { width: 66px; height: 66px; border-radius: 50%; background: var(--g-orange-soft); color: var(--g-orange-600); display: grid; place-items: center; font-size: 30px; margin: 0 auto 18px; }
 .done-card h2 { font-family: var(--g-font-d); font-weight: 800; font-size: 25px; color: var(--g-indigo); margin: 0 0 8px; letter-spacing: -0.02em; }
 .done-card p { font-size: 14px; line-height: 1.55; color: var(--g-muted); margin: 0 0 24px; }
+.done-card.has-checklist p { margin-bottom: 18px; }
 .done-card p b { color: var(--g-indigo); }
+.done-checklist { margin: 0 0 22px; padding: 16px; text-align: left; background: #f8f9fd; border: 1px solid var(--g-line); border-radius: 8px; }
+.done-checklist-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; color: var(--g-indigo); font-size: 14px; font-weight: 800; }
+.done-checklist-ic { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; flex: none; color: var(--g-orange-600); background: var(--g-orange-soft); font-size: 13px; font-weight: 900; }
+.done-checklist-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.done-check-group + .done-check-group { border-left: 1px solid #e6e8f2; padding-left: 16px; }
+.done-check-group h3 { margin: 0 0 8px; color: var(--g-indigo); font-size: 13px; font-weight: 800; }
+.done-card.has-checklist .done-check-group p { margin: 0 0 8px; font-size: 12.5px; color: var(--g-muted); line-height: 1.45; }
+.done-check-group ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 7px; }
+.done-check-group li { display: grid; grid-template-columns: 18px 1fr; gap: 7px; align-items: start; font-size: 12.5px; line-height: 1.42; color: var(--g-indigo); }
+.done-check-group li span { color: var(--g-orange-600); font-weight: 900; }
 .done-card .done-actions { display: flex; flex-direction: column; gap: 10px; }
 .done-card .btn { border-radius: 11px; padding: 12px 18px; font-size: 14px; font-weight: 700; cursor: pointer; border: 1px solid var(--g-line); }
 .done-card .btn.primary { background: var(--g-indigo); color: #fff; border-color: var(--g-indigo); }
 .done-card .btn.primary:hover { background: var(--g-indigo-700); }
 .done-card .btn.ghost { background: #fff; color: var(--g-indigo); }
 .done-card .btn.ghost:hover { background: var(--g-indigo-soft); }
+@media (max-width: 620px) {
+  .done-scrim { padding: 14px; align-items: center; }
+  .done-card.has-checklist { max-width: 100%; padding: 28px 22px; }
+  .done-checklist-grid { grid-template-columns: 1fr; gap: 12px; }
+  .done-check-group + .done-check-group { border-left: 0; border-top: 1px solid #e6e8f2; padding-left: 0; padding-top: 12px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .spot-strip, .spot-ring, .mrow .pfill, .coach { transition: none; }

@@ -7,91 +7,128 @@
 <link rel="stylesheet" href="console/console.css" />
 <link rel="stylesheet" href="console/guide.css" />
 <style>
-  /* ---------------- Library (top layer) — FBABEE brand tone ---------------- */
-  #library { --brand-navy: #1b214c; --brand-navy-2: #2a3270; --brand-navy-700: #141937;
-    --brand-orange: #f2922e; --brand-orange-600: #e07d18;
+  /* ---------------- Library (top layer) — Featured Hero homepage ----------------
+     Scoped under #library so nothing leaks into the player (which uses console.css).
+     Brand palette + a few aliases for vars Option A used that console.css names differently. */
+  #library { --navy: #1b214c; --navy2: #2a3270; --navy700: #141937;
+    --orange: #f2922e; --orange600: #e07d18;
+    --soft: var(--soft-line); --ink2: var(--ink-2);
     min-height: 100vh; background:
       radial-gradient(900px 520px at 8% -8%, #e8e9f5, transparent 60%),
       radial-gradient(820px 520px at 102% 4%, #fdf1e3, transparent 55%),
       #f4f5f8; }
-  .lib-bar { display: flex; align-items: center; gap: 14px; padding: 18px 40px; }
-  .lib-bar img { height: 30px; }
-  .lib-bar .div { width: 1px; height: 26px; background: var(--line); }
-  .lib-bar .ttl { font-family: var(--font-d); font-weight: 700; font-size: 15px; color: var(--ink); }
-  .lib-bar .ttl span { display: block; font-size: 11.5px; font-weight: 600; color: var(--muted); }
-  .lib-bar .right { margin-left: auto; font-size: 13px; color: var(--muted); }
 
-  .lib-wrap { max-width: 1180px; margin: 0 auto; padding: 26px 40px 80px; }
-  .lib-hero { margin-bottom: 30px; max-width: 720px; }
-  .lib-hero .eyebrow { font-size: 12px; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; color: var(--brand-orange-600); }
-  .lib-hero h1 { font-family: var(--font-d); font-weight: 800; font-size: 38px; line-height: 1.08; letter-spacing: -0.025em; color: var(--ink); margin: 12px 0 12px; }
-  .lib-hero p { font-size: 16px; line-height: 1.6; color: var(--muted); margin: 0; }
+  #library .bar { display: flex; align-items: center; gap: 14px; padding: 18px 40px; max-width: 1240px; margin: 0 auto; }
+  #library .bar img { height: 28px; }
+  #library .bar .div { width: 1px; height: 24px; background: var(--line); }
+  #library .bar .ttl { font-family: var(--font-d); font-weight: 700; font-size: 14px; color: var(--ink); line-height: 1.25; }
+  #library .bar .ttl span { display: block; font-size: 11px; font-weight: 600; color: var(--muted); }
+  #library .bar .right { margin-left: auto; font-size: 12.5px; color: var(--muted); }
 
-  .lib-controls { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-  .lib-search { display: flex; height: 44px; width: 320px; max-width: 100%; background: #fff; border: 1px solid var(--line); border-radius: 11px; overflow: hidden; }
-  .lib-search input { flex: 1; border: 0; padding: 0 16px; font-size: 14px; outline: none; }
-  .lib-search .ic { display: grid; place-items: center; width: 46px; color: var(--muted); font-size: 17px; }
-  .lib-cats { display: flex; gap: 8px; flex-wrap: wrap; }
-  .cat { padding: 9px 16px; border-radius: 999px; font-size: 13px; font-weight: 600; color: var(--muted); background: #fff; border: 1px solid var(--line); cursor: pointer; transition: all 140ms; }
-  .cat:hover { border-color: var(--brand-navy); color: var(--brand-navy); }
-  .cat.on { background: var(--brand-navy); color: #fff; border-color: var(--brand-navy); }
+  #library .wrap { max-width: 1240px; margin: 0 auto; padding: 18px 40px 64px; }
+  #library .lvl { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--navy); }
 
-  .lib-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
-  @media (max-width: 1000px) { .lib-grid { grid-template-columns: repeat(2, 1fr); } }
-  .tcard { background: #fff; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 16px 40px -30px rgba(15,23,30,0.5); transition: transform 200ms, box-shadow 200ms; }
-  .tcard.live { cursor: pointer; }
-  .tcard.live:hover { border-color: var(--brand-navy); box-shadow: 0 22px 46px -30px rgba(27,33,76,0.5); }
-  .tcard.soon { opacity: 0.78; }
+  #library .go { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; color: var(--navy); font-size: 14px; }
+  #library .cta { display: inline-flex; align-items: center; gap: 9px; height: 50px; padding: 0 26px; border-radius: 12px;
+    background: var(--orange); color: #fff; font-family: var(--font-d); font-weight: 700; font-size: 15.5px;
+    text-decoration: none; cursor: pointer; border: 0; transition: transform 140ms, box-shadow 140ms;
+    box-shadow: 0 14px 30px -12px rgba(224,125,24,0.65); }
+  #library .cta:hover { transform: translateY(-1px); box-shadow: 0 18px 36px -12px rgba(224,125,24,0.7); }
+  #library .meta { display: flex; align-items: center; gap: 12px; font-size: 12.5px; color: var(--faint); font-weight: 600; }
 
-  /* mini preview — FBABEE-branded guided-steps motif */
-  .tprev { height: 138px; background:
-      radial-gradient(140% 120% at 88% -10%, var(--brand-navy-2), transparent 60%),
-      var(--brand-navy);
-    border-bottom: 1px solid var(--soft-line); position: relative; overflow: hidden;
-    display: flex; align-items: center; justify-content: center; }
-  .tprev::after { content: ""; position: absolute; right: -40px; bottom: -50px; width: 150px; height: 150px;
-    border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.06); }
-  .tprev .cat-tag { position: absolute; top: 18px; left: 18px; z-index: 2; }
-  .pill.nav { background: rgba(255,255,255,0.12); color: #fff; border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(2px); }
-  /* guided rail */
-  .rail-mini { display: flex; align-items: center; }
-  .rail-mini .seg { width: 30px; height: 2px; background: rgba(255,255,255,0.18); }
-  .rail-mini .seg.fill { background: var(--brand-orange); }
-  .rail-mini .node { width: 12px; height: 12px; border-radius: 50%; flex: none; background: rgba(255,255,255,0.22); }
-  .rail-mini .node.done { background: var(--brand-orange); }
-  .rail-mini .node.on { width: 20px; height: 20px; background: var(--brand-orange); box-shadow: 0 0 0 5px rgba(242,146,46,0.22); }
+  #library .railmini { display: flex; align-items: center; }
+  #library .railmini .node { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.25); flex: none; }
+  #library .railmini .node.done { background: var(--orange); }
+  #library .railmini .node.on { width: 15px; height: 15px; background: var(--orange); box-shadow: 0 0 0 4px rgba(242,146,46,0.22); }
+  #library .railmini .seg { width: 22px; height: 2px; background: rgba(255,255,255,0.2); }
+  #library .railmini .seg.fill { background: var(--orange); }
 
-  .tbody { padding: 18px 20px 20px; display: flex; flex-direction: column; flex: 1; }
-  .tbody .lvl { font-size: 11.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--brand-navy); }
-  .tbody h3 { font-family: var(--font-d); font-weight: 700; font-size: 18px; color: var(--ink); margin: 7px 0 8px; line-height: 1.2; letter-spacing: -0.01em; }
-  .tbody p { font-size: 13.5px; line-height: 1.55; color: var(--muted); margin: 0 0 16px; flex: 1; }
-  .tmeta { display: flex; align-items: center; gap: 14px; font-size: 12.5px; color: var(--faint); font-weight: 600; }
-  .tmeta .dot { width: 3px; height: 3px; border-radius: 50%; background: var(--faint); }
-  .tfoot { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; }
-  .tfoot .go { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; color: var(--brand-navy); font-size: 14px; }
-  .tcard.live:hover .tfoot .go { color: var(--brand-orange-600); }
-  .tfoot .soon-badge { font-size: 12px; font-weight: 700; color: var(--muted); background: var(--soft-line); padding: 6px 12px; border-radius: 999px; }
+  /* ---- Featured hero ---- */
+  #library .a-hero { display: grid; grid-template-columns: 1.18fr 1fr; background: #fff; border: 1px solid var(--line);
+    border-radius: 22px; overflow: hidden; box-shadow: 0 30px 60px -40px rgba(27,33,76,0.55); margin-bottom: 34px; }
+  #library .a-hero.live { cursor: pointer; transition: box-shadow 200ms, border-color 200ms; }
+  #library .a-hero.live:hover { border-color: var(--navy); box-shadow: 0 36px 66px -40px rgba(27,33,76,0.6); }
+  #library .a-hero .L { padding: 44px 44px 40px; display: flex; flex-direction: column; }
+  #library .a-hero .badge { display: inline-flex; align-items: center; gap: 8px; font-size: 11.5px; font-weight: 800;
+    letter-spacing: 0.07em; text-transform: uppercase; color: var(--orange600); }
+  #library .a-hero .badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--orange);
+    box-shadow: 0 0 0 4px rgba(242,146,46,0.2); }
+  #library .a-hero h1 { font-family: var(--font-d); font-weight: 800; font-size: 40px; line-height: 1.05; letter-spacing: -0.03em;
+    color: var(--ink); margin: 16px 0 14px; }
+  #library .a-hero p { font-size: 15.5px; line-height: 1.62; color: var(--muted); margin: 0 0 26px; max-width: 460px; }
+  #library .a-hero .metarow { display: flex; gap: 22px; margin-bottom: 30px; }
+  #library .a-hero .mstat { display: flex; flex-direction: column; gap: 3px; }
+  #library .a-hero .mstat b { font-family: var(--font-d); font-weight: 800; font-size: 22px; color: var(--navy); letter-spacing: -0.02em; }
+  #library .a-hero .mstat span { font-size: 11.5px; font-weight: 600; color: var(--faint); text-transform: uppercase; letter-spacing: 0.05em; }
+  #library .a-hero .L .foot { margin-top: auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+  #library .a-hero .L .foot .sub { font-size: 12.5px; color: var(--faint); }
+
+  #library .a-hero .R { position: relative; background:
+      radial-gradient(150% 120% at 90% -10%, var(--navy2), transparent 58%), var(--navy);
+    padding: 40px 40px; overflow: hidden; }
+  #library .a-hero .R::after { content: ""; position: absolute; right: -70px; bottom: -90px; width: 240px; height: 240px;
+    border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.07); }
+  #library .a-hero .R .cap { font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: rgba(255,255,255,0.5); margin-bottom: 22px; }
+  #library .vrail { display: flex; flex-direction: column; gap: 0; }
+  #library .vrail .st { display: grid; grid-template-columns: 28px 1fr; gap: 14px; }
+  #library .vrail .gut { display: flex; flex-direction: column; align-items: center; }
+  #library .vrail .knob { width: 16px; height: 16px; border-radius: 50%; background: rgba(255,255,255,0.22); flex: none; margin-top: 3px; }
+  #library .vrail .st.done .knob { background: var(--orange); }
+  #library .vrail .st.now .knob { width: 22px; height: 22px; margin-top: 0; background: var(--orange); box-shadow: 0 0 0 5px rgba(242,146,46,0.22); }
+  #library .vrail .line { width: 2px; flex: 1; background: rgba(255,255,255,0.16); margin: 4px 0; min-height: 22px; }
+  #library .vrail .st.done .line { background: var(--orange); }
+  #library .vrail .lbl { color: rgba(255,255,255,0.92); font-weight: 600; font-size: 14.5px; padding-bottom: 22px; }
+  #library .vrail .lbl small { display: block; color: rgba(255,255,255,0.5); font-weight: 500; font-size: 12px; margin-top: 2px; }
+  #library .vrail .st:last-child .line { display: none; }
+
+  /* ---- Library ---- */
+  #library .a-secthead { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; gap: 16px; flex-wrap: wrap; }
+  #library .a-secthead h2 { font-family: var(--font-d); font-weight: 800; font-size: 21px; letter-spacing: -0.02em; color: var(--ink); margin: 0; }
+  #library .a-cats { display: flex; gap: 8px; flex-wrap: wrap; }
+  #library .cat { padding: 8px 15px; border-radius: 999px; font-size: 12.5px; font-weight: 600; color: var(--muted);
+    background: #fff; border: 1px solid var(--line); cursor: pointer; transition: all 140ms; }
+  #library .cat:hover { border-color: var(--navy); color: var(--navy); }
+  #library .cat.on { background: var(--navy); color: #fff; border-color: var(--navy); }
+
+  #library .a-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+  @media (max-width: 1000px) { #library .a-grid { grid-template-columns: repeat(2, 1fr); } #library .a-hero { grid-template-columns: 1fr; } #library .a-hero .R { display: none; } }
+  #library .ccard { background: #fff; border: 1px solid var(--line); border-radius: 15px; padding: 20px; display: flex; flex-direction: column;
+    box-shadow: 0 14px 36px -30px rgba(15,23,30,0.5); transition: transform 200ms, box-shadow 200ms, border-color 200ms; }
+  #library .ccard.live { cursor: pointer; }
+  #library .ccard.live:hover { border-color: var(--navy); box-shadow: 0 22px 46px -30px rgba(27,33,76,0.5); }
+  #library .ccard.soon { opacity: 0.82; }
+  #library .ccard .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  #library .ccard .gicon { width: 38px; height: 38px; border-radius: 10px; background: var(--navy); display: grid; place-items: center; }
+  #library .ccard .gicon .railmini .seg { width: 5px; }
+  #library .ccard .soonbadge { font-size: 11px; font-weight: 700; color: var(--muted); background: var(--soft); padding: 5px 11px; border-radius: 999px; }
+  #library .ccard .lvl { margin-bottom: 6px; }
+  #library .ccard h3 { font-family: var(--font-d); font-weight: 700; font-size: 16.5px; color: var(--ink); margin: 0 0 7px; line-height: 1.22; letter-spacing: -0.01em; }
+  #library .ccard p { font-size: 13px; line-height: 1.5; color: var(--muted); margin: 0 0 16px; flex: 1; }
+  #library .ccard .cfoot { display: flex; align-items: center; justify-content: space-between; }
+  #library .ccard.live:hover .cfoot .go { color: var(--orange600); }
+  #library .a-empty { grid-column: 1 / -1; padding: 40px 0; color: var(--muted); }
 </style>
 </head>
 <body>
   <div id="library">
-    <div class="lib-bar">
+    <div class="bar">
       <img src="console/fbabee-logo.png" alt="FBABEE" />
       <div class="div"></div>
       <div class="ttl">Interactive Seller Console Tutorials<span>Hands-on walkthroughs of the real backend</span></div>
       <div class="right">Training sandbox — no real account affected</div>
     </div>
-    <div class="lib-wrap">
-      <div class="lib-hero">
-        <div class="eyebrow">Learn by doing</div>
-        <h1>Master the seller console, one click at a time.</h1>
-        <p>Pick a workflow below. Each tutorial drops you into a faithful, interactive copy of the backend and guides you through every step — click, type, and learn exactly what to do.</p>
+
+    <div class="wrap">
+      <!-- Featured hero: the first live workflow, promoted. Rendered from data. -->
+      <div id="libHero"></div>
+
+      <!-- Library: remaining tutorials in a uniform, compact grid -->
+      <div class="a-secthead">
+        <h2>Browse all tutorials</h2>
+        <div class="a-cats" id="libCats"></div>
       </div>
-      <div class="lib-controls">
-        <div class="lib-search"><input id="libSearch" placeholder="Search tutorials…" /><span class="ic">&#9906;</span></div>
-        <div class="lib-cats" id="libCats"></div>
-      </div>
-      <div class="lib-grid" id="libGrid"></div>
+      <div class="a-grid" id="libGrid"></div>
     </div>
   </div>
 
@@ -104,70 +141,99 @@
   <!-- Tutorials: shared scaffolding first, then one file per tutorial. -->
   <script src="console/tutorials/_shared.js"></script>
   <script src="console/tutorials/shipping-plan.js"></script>
+  <script src="console/tutorials/removal-order.js"></script>
   <script src="console/tutorials/_placeholders.js"></script>
   <script src="console/guide.js"></script>
   <script src="console/_smoke.js"></script>
   <script>
     (function () {
+      const heroEl = document.getElementById("libHero");
       const grid = document.getElementById("libGrid");
       const catsEl = document.getElementById("libCats");
-      const searchEl = document.getElementById("libSearch");
       const list = Object.values(window.TUTORIALS);
-      const cats = ["All", ...Array.from(new Set(list.map(t => t.category)))];
-      let activeCat = "All", q = "";
 
-      catsEl.innerHTML = cats.map(c => `<div class="cat ${c === "All" ? "on" : ""}" data-c="${c}">${c}</div>`).join("");
+      // Featured = first live tutorial (has steps). The rest go to the grid.
+      const featured = list.find(t => !!t.steps) || null;
+      const rest = list.filter(t => t !== featured);
+
+      const cats = ["All", ...Array.from(new Set(rest.map(t => t.category)))];
+      let activeCat = "All";
+
+      function esc(s) { return String(s == null ? "" : s); }
+
+      // ---- Featured hero (data-driven) ----
+      function heroStages(t) {
+        const order = (t.rail && t.rail.order) || [];
+        const label = (t.rail && t.rail.label) || {};
+        return order.filter(k => k !== "start" && k !== "done").map(k => label[k] || k);
+      }
+      function renderHero(t) {
+        if (!t) { heroEl.innerHTML = ""; return; }
+        const stages = heroStages(t);
+        const minutes = (t.est || "—").replace(/\s*min\b.*/i, "").trim() || "—";
+        const steps = t.steps ? t.steps.length : "—";
+        const railHtml = stages.map(s =>
+          `<div class="st"><div class="gut"><i class="knob"></i><i class="line"></i></div><div class="lbl">${esc(s)}</div></div>`
+        ).join("");
+        heroEl.innerHTML = `<div class="a-hero live" data-id="${esc(t.id)}">
+          <div class="L">
+            <div class="badge">Most popular · Start here</div>
+            <h1>${esc(t.title)}</h1>
+            <p>${esc(t.summary)}</p>
+            <div class="metarow">
+              <div class="mstat"><b>${esc(minutes)}</b><span>minutes</span></div>
+              <div class="mstat"><b>${esc(steps)}</b><span>steps</span></div>
+              <div class="mstat"><b>${stages.length}</b><span>stages</span></div>
+            </div>
+            <div class="foot">
+              <button class="cta" type="button">Start tutorial &#8594;</button>
+              <span class="sub">Safe sandbox · nothing real is affected</span>
+            </div>
+          </div>
+          <div class="R">
+            <div class="cap">What you'll walk through</div>
+            <div class="vrail">${railHtml}</div>
+          </div>
+        </div>`;
+      }
+
+      // ---- Category pills ----
+      catsEl.innerHTML = cats.map(c => `<span class="cat ${c === "All" ? "on" : ""}" data-c="${esc(c)}">${esc(c)}</span>`).join("");
       catsEl.addEventListener("click", e => {
         const c = e.target.closest(".cat"); if (!c) return;
         activeCat = c.dataset.c;
         catsEl.querySelectorAll(".cat").forEach(x => x.classList.toggle("on", x.dataset.c === activeCat));
-        render();
+        renderGrid();
       });
-      searchEl.addEventListener("input", () => { q = searchEl.value.toLowerCase().trim(); render(); });
 
-      function mini(cat) {
-        return `<div class="tprev">
-          <span class="cat-tag pill nav">${cat}</span>
-          <div class="rail-mini">
-            <i class="node done"></i><i class="seg fill"></i>
-            <i class="node done"></i><i class="seg fill"></i>
-            <i class="node on"></i><i class="seg"></i>
-            <i class="node"></i><i class="seg"></i>
-            <i class="node"></i>
-          </div>
-        </div>`;
-      }
-
+      // ---- Compact library cards ----
       function card(t) {
         const live = !!t.steps;
-        const steps = live ? t.steps.length : "—";
-        return `<div class="tcard ${live ? "live" : "soon"}" ${live ? `data-id="${t.id}"` : ""}>
-          ${mini(t.category)}
-          <div class="tbody">
-            <div class="lvl">${t.level || "Workflow"}</div>
-            <h3>${t.title}</h3>
-            <p>${t.summary}</p>
-            <div class="tmeta"><span>${t.est || "—"}</span><span class="dot"></span><span>${live ? steps + " steps" : "In production"}</span></div>
-            <div class="tfoot">
-              ${live ? `<span class="go">Start tutorial &#8594;</span>` : `<span class="soon-badge">Coming soon</span>`}
-            </div>
+        return `<div class="ccard ${live ? "live" : "soon"}" ${live ? `data-id="${esc(t.id)}"` : ""}>
+          <div class="top">
+            <div class="gicon"><div class="railmini"><i class="node done"></i><i class="seg fill"></i><i class="node on"></i><i class="seg"></i><i class="node"></i></div></div>
+            ${live ? "" : `<span class="soonbadge">Coming soon</span>`}
+          </div>
+          <div class="lvl">${esc(t.level || "Workflow")}</div>
+          <h3>${esc(t.title)}</h3>
+          <p>${esc(t.summary)}</p>
+          <div class="cfoot">
+            <span class="meta">${esc(t.est || "—")}</span>
+            ${live ? `<span class="go">Start tutorial &#8594;</span>` : `<span class="go" style="color:var(--faint)">In production</span>`}
           </div>
         </div>`;
       }
 
-      function render() {
-        const items = list.filter(t =>
-          (activeCat === "All" || t.category === activeCat) &&
-          (!q || (t.title + " " + t.summary).toLowerCase().includes(q))
-        ).sort((a, b) => (!!b.steps) - (!!a.steps));
-        grid.innerHTML = items.length ? items.map(card).join("") : `<div class="muted" style="grid-column:1/-1;padding:40px 0">No tutorials match your search.</div>`;
+      function renderGrid() {
+        const items = rest
+          .filter(t => activeCat === "All" || t.category === activeCat)
+          .sort((a, b) => (!!b.steps) - (!!a.steps));
+        grid.innerHTML = items.length
+          ? items.map(card).join("")
+          : `<div class="a-empty">No tutorials in this category yet.</div>`;
       }
 
-      grid.addEventListener("click", e => {
-        const c = e.target.closest(".tcard.live"); if (!c) return;
-        openTutorial(c.dataset.id);
-      });
-
+      // ---- Open a tutorial ----
       function openTutorial(id) {
         document.getElementById("library").style.display = "none";
         const host = document.getElementById("player");
@@ -179,7 +245,17 @@
         document.getElementById("library").style.display = "";
       }
 
-      render();
+      heroEl.addEventListener("click", e => {
+        const h = e.target.closest(".a-hero.live"); if (!h) return;
+        openTutorial(h.dataset.id);
+      });
+      grid.addEventListener("click", e => {
+        const c = e.target.closest(".ccard.live"); if (!c) return;
+        openTutorial(c.dataset.id);
+      });
+
+      renderHero(featured);
+      renderGrid();
     })();
   </script>
 </body>
