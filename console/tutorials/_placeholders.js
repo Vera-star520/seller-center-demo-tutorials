@@ -5,7 +5,6 @@
    ============================================================ */
 (function () {
   [
-    { id: "print-fnsku-labels", title: "How to Print FNSKU Labels", category: "Inventory", level: "Inventory setup", summary: "Learn where to download and print FNSKU labels for your FBA products.", est: "3 min", soon: true, libraryOrder: 1 },
     { id: "create-awd-shipping-plan", title: "Create an AWD Shipping Plan", category: "Shipments", level: "Core workflow", summary: "Create an AWD shipment plan and prepare inventory for Amazon Warehousing and Distribution.", est: "8–10 min", soon: true, libraryOrder: 3 },
     { id: "get-reference-id", title: "How to Get the Reference ID", category: "Shipments", level: "Shipment details", summary: "Find the Amazon Reference ID needed for LTL / FTL shipments.", est: "2 min", soon: true, libraryOrder: 4 },
     { id: "fill-tracking-ids", title: "How to Fill out Tracking IDs", category: "Shipments", level: "Shipment details", summary: "Enter or update tracking IDs for your shipments in Seller Central.", est: "3 min", soon: true, libraryOrder: 5 },

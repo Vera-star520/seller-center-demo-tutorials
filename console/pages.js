@@ -5,11 +5,20 @@
    TUTORIAL ANCHORS (public contract — do not rename without grepping
    console/tutorials/ first; a renamed/removed anchor silently breaks the
    spotlight and is caught by console/_smoke.js):
+     data-tour="inventory-search" FBA Inventory search area
      data-tour="ck-{i}"          FBA Inventory row checkbox (per SKU index)
      data-tour="groupbar"        bottom group-action bar
      data-tour="group-action"    "Select group action" button
      data-tour="create-removal"  "Create removal order" item in the group-action menu
+     data-tour="print-item-labels" "Print Item Labels" item in the group-action menu
      data-tour="send-fba"        "Send to FBA" item in the group-action menu
+     data-tour="recommended-action-{i}" Recommended action split-button main area
+     data-tour="recommended-action-caret-{i}" Recommended action menu caret
+     data-tour="recommended-action-menu-{i}" Recommended action dropdown menu
+     data-tour="recommended-action-print-labels-{i}" Print Item Labels row menu item
+     data-tour="recommended-action-send-fba-{i}" Send to FBA row menu item
+     data-tour="fnsku-*"         Print Labels for Individual Products demo window
+     data-tour="fnsku-label-row-{i}" Print Labels modal SKU row
      data-tour="removal-*"       Create Removal Order flow anchors
    ============================================================ */
 (function () {
@@ -105,9 +114,7 @@
       const deltaCls = p.sellDelta.trim().startsWith("-") ? "down" : "up";
       const ageRows = AGE_BUCKETS.map((b, k) =>
         `<div><span class="muted">${b}:</span> <span class="${p.age[k] ? "" : "muted"}" style="float:right">${p.age[k]}</span></div>`).join("");
-      const action = p.health === "Low stock"
-        ? `<button class="btn primary sm" style="width:100%" data-act="row-send" data-i="${i}">Send to FBA</button>`
-        : `<button class="btn dark sm split" style="width:100%;justify-content:space-between">No action required ${DCARET}</button>`;
+      const action = recommendedAction(p, i);
       return `
       <div class="invrow" style="grid-template-columns:${cols}">
         <div class="ck ${on ? "on" : ""}" data-act="inv-check" data-i="${i}" data-tour="ck-${i}">${on ? "&#10003;" : ""}</div>
@@ -155,7 +162,7 @@
         <div class="kvline agecol">
           ${ageRows}
         </div>
-        <div style="align-self:start">${action}</div>
+        <div class="ra-cell${A.state.recommendedOpen === i ? " open" : ""}">${action}</div>
       </div>`;
     }).join("");
 
@@ -179,7 +186,7 @@
       <span style="color:var(--ink);font-weight:700">Selected filters</span> <a>Clear filters</a>
     </div>
     <div class="tbl-toolbar" style="padding-top:0">
-      <div class="searchbox"><input placeholder="Search by SKU, ASIN, or any product detail" readonly><button>Search</button></div>
+      <div class="searchbox" data-tour="inventory-search"><input placeholder="Search by SKU, ASIN, or any product detail" readonly><button>Search</button></div>
       <span class="tiny muted" style="margin-left:auto;align-self:center">${D.PRODUCTS.length} results</span>
     </div>
     <div class="invtable pin-action">
@@ -201,6 +208,40 @@
     ${groupBar()}`;
   };
 
+  function recommendedAction(p, i) {
+    const isSend = p.health === "Low stock";
+    const label = isSend ? "Send to FBA" : "No action required";
+    const open = A.state.recommendedOpen === i;
+    const mainAct = isSend ? ` data-act="row-send" data-i="${i}"` : "";
+    return `
+      <div class="ra-wrap" data-ra-root data-i="${i}">
+        <div class="ra-split${open ? " open" : ""}">
+          <button class="ra-main" type="button"${mainAct} data-tour="recommended-action-${i}">${label}</button>
+          <button class="ra-caret" type="button" data-act="recommended-toggle" data-i="${i}" data-tour="recommended-action-caret-${i}" aria-expanded="${open ? "true" : "false"}" aria-label="Open recommended action menu for row ${i + 1}">${DCARET}</button>
+        </div>
+        ${open ? recommendedActionMenu(i) : ""}
+      </div>`;
+  }
+
+  function recommendedActionMenu(i) {
+    const item = (label, act, tour) => `<button class="ra-item" type="button" data-act="${act || "recommended-close"}" data-i="${i}"${tour ? ` data-tour="${tour}-${i}"` : ""}>${label}</button>`;
+    return `<div class="ra-menu" data-tour="recommended-action-menu-${i}">
+      ${item("No action required")}
+      ${item("Send to FBA", "row-send", "recommended-action-send-fba")}
+      ${item("Create MCF fulfillment order")}
+      ${item("Edit listing")}
+      ${item("Improve keywords")}
+      ${item("Create a Sponsored Products ad")}
+      ${item("Lower price")}
+      ${item("Create removal order", "recommended-removal")}
+      ${item("SKU performance")}
+      ${item("Print Item Labels", "recommended-print-labels", "recommended-action-print-labels")}
+      ${item("Set replenishment alert")}
+      ${item("Customize SKU settings")}
+      ${item("Send to AWD")}
+    </div>`;
+  }
+
   function groupBar() {
     const n = A.state.selected.size;
     if (!n) return "";
@@ -213,7 +254,7 @@
         <button class="ga" data-act="group-toggle" data-tour="group-action">Select group action ${UCARET}</button>
         ${open ? `<div class="dropdown open" style="bottom:46px;top:auto;min-width:220px">
           <div class="ditem" data-act="create-removal" data-tour="create-removal">Create removal order</div>
-          <div class="ditem disabled">Print Item Labels</div>
+          <div class="ditem" data-act="print-item-labels" data-tour="print-item-labels">Print Item Labels</div>
           <div class="ditem disabled">Create sale</div>
           <div class="ditem" data-act="send-fba" data-tour="send-fba">Send to FBA</div>
         </div>` : ""}
@@ -222,9 +263,184 @@
   }
 
   // extra inventory actions
-  A.actions["group-toggle"] = () => { A.state.groupOpen = !A.state.groupOpen; A.render(); };
-  A.actions["row-send"] = (ctx) => { A.state.selected.add(+ctx.el.dataset.i); A.navigate("sendfc"); };
-  A.actions["create-removal"] = () => { if (A.state.selected.size) A.navigate("removal"); };
+  A.actions["group-toggle"] = () => { A.state.recommendedOpen = null; A.state.groupOpen = !A.state.groupOpen; A.render(); };
+  A.actions["row-send"] = (ctx) => { A.state.recommendedOpen = null; A.state.selected.add(+ctx.el.dataset.i); A.navigate("sendfc"); };
+  A.actions["create-removal"] = () => { A.state.recommendedOpen = null; if (A.state.selected.size) A.navigate("removal"); };
+  A.actions["recommended-toggle"] = (ctx) => {
+    const i = +ctx.el.dataset.i;
+    A.state.groupOpen = false;
+    A.state.recommendedOpen = A.state.recommendedOpen === i ? null : i;
+    A.render();
+  };
+  A.actions["recommended-close"] = () => { A.state.recommendedOpen = null; A.render(); };
+  A.actions["recommended-removal"] = (ctx) => {
+    A.state.recommendedOpen = null;
+    A.state.selected.add(+ctx.el.dataset.i);
+    A.navigate("removal");
+  };
+  A.actions["print-item-labels"] = () => {
+    if (!A.state.selected.size) return;
+    openFnskuPrintLabels(selectedInventoryIndexes());
+  };
+  A.actions["recommended-print-labels"] = (ctx) => {
+    A.state.recommendedOpen = null;
+    openFnskuPrintLabels([+ctx.el.dataset.i]);
+  };
+  A.actions["fnsku-print"] = () => {
+    if (!A.state.fnskuLabels) A.state.fnskuLabels = { itemIndexes: [], qty: [] };
+  };
+  A.actions["fnsku-return"] = () => {
+    A.state.groupOpen = false;
+    A.state.fnskuLabels = null;
+    A.closeModal();
+  };
+  A.actions["input:fnsku-qty"] = (ctx) => {
+    if (!A.state.fnskuLabels) A.state.fnskuLabels = { itemIndexes: [], qty: [] };
+    const i = +ctx.el.dataset.i;
+    const next = Math.max(0, parseInt(ctx.value, 10) || 0);
+    A.state.fnskuLabels.qty[i] = next;
+    const win = ctx.el.closest(".fnsku-window");
+    const total = win && win.querySelector("[data-fnsku-total]");
+    if (total) total.textContent = String(fnskuTotal());
+  };
+
+  function selectedInventoryIndexes() {
+    return D.PRODUCTS.map((_, i) => i).filter(i => A.state.selected.has(i));
+  }
+
+  function normalizeFnskuIndexes(indexes) {
+    const seen = new Set();
+    return (indexes || []).reduce((list, i) => {
+      const n = +i;
+      if (!Number.isInteger(n) || n < 0 || n >= D.PRODUCTS.length || seen.has(n)) return list;
+      seen.add(n);
+      list.push(n);
+      return list;
+    }, []);
+  }
+
+  function openFnskuPrintLabels(indexes) {
+    const itemIndexes = normalizeFnskuIndexes(indexes);
+    if (!itemIndexes.length) return;
+    A.state.groupOpen = false;
+    A.state.recommendedOpen = null;
+    A.state.fnskuLabels = { itemIndexes, qty: itemIndexes.map(() => 1) };
+    A.openModal(fnskuPrintWindow());
+  }
+
+  function fnskuState() {
+    if (!A.state.fnskuLabels) A.state.fnskuLabels = { itemIndexes: [], qty: [] };
+    A.state.fnskuLabels.itemIndexes = normalizeFnskuIndexes(A.state.fnskuLabels.itemIndexes);
+    if (!Array.isArray(A.state.fnskuLabels.qty)) A.state.fnskuLabels.qty = [];
+    A.state.fnskuLabels.itemIndexes.forEach((_, i) => {
+      const n = parseInt(A.state.fnskuLabels.qty[i], 10);
+      A.state.fnskuLabels.qty[i] = Number.isFinite(n) && n >= 0 ? n : 1;
+    });
+    A.state.fnskuLabels.qty = A.state.fnskuLabels.qty.slice(0, A.state.fnskuLabels.itemIndexes.length);
+    return A.state.fnskuLabels;
+  }
+
+  function fnskuTotal() {
+    const s = fnskuState();
+    return s.itemIndexes.reduce((sum, _, i) => sum + (+s.qty[i] || 0), 0);
+  }
+
+  function fnskuPrintWindow() {
+    const s = fnskuState();
+    const rows = s.itemIndexes.map((productIndex, i) => {
+      const p = D.PRODUCTS[productIndex];
+      return `
+      <div class="fnsku-tr fnsku-row" data-tour="fnsku-label-row-${i}">
+        <div class="fnsku-sku">${esc(p.sku)}</div>
+        <div class="fnsku-title">${esc(p.shortName || p.name)}</div>
+        <div class="fnsku-qty">
+          <input class="inp sm" type="number" min="0" step="1" value="${s.qty[i]}" data-input="fnsku-qty" data-i="${i}" data-tour="fnsku-label-qty-${i}" aria-label="Number of labels to print for ${esc(p.sku)}">
+        </div>
+      </div>`;
+    }).join("");
+
+    return A.el(`<div class="modal fnsku-window" data-tour="fnsku-print-window" role="dialog" aria-modal="true" aria-label="Print Labels for Individual Products">
+      <div class="fnsku-chrome">
+        <div class="fnsku-top">
+          <button class="fnsku-menu" type="button" aria-label="Menu">&#9776;</button>
+          <div class="fnsku-brand"><span>seller central</span></div>
+          <div class="fnsku-market"><b>Demo USA</b><span>United States</span></div>
+          <div class="fnsku-search"><input placeholder="Search" readonly><button type="button" aria-label="Search">&#9906;</button></div>
+          <div class="fnsku-tools"><span>New Seller Central</span><span>EN</span><span>Help</span></div>
+          <button class="fnsku-close" type="button" data-act="close-modal" aria-label="Close">x</button>
+        </div>
+        <div class="fnsku-sub"><span>Add Products</span><button type="button">Edit</button></div>
+      </div>
+      <div class="fnsku-page">
+        <div class="fnsku-links">All Inventory View <span>|</span> Inventory Amazon Fulfills <span>|</span> Shipping Queue</div>
+        <div class="fnsku-titlebar">
+          <div>
+            <h2>Print Labels for Individual Products</h2>
+            <p>Specify the number of labels to print for each SKU and click the "Print Item Labels" button.</p>
+          </div>
+          <div class="fnsku-note"><b>Note:</b> You can return to this page to print more labels at any time.</div>
+        </div>
+        <div class="fnsku-table-wrap">
+          <div class="fnsku-table">
+            <div class="fnsku-tr fnsku-head">
+              <div>Merchant SKU</div>
+              <div>Title</div>
+              <div>Number of labels to print</div>
+            </div>
+            ${rows}
+            <div class="fnsku-tr fnsku-total">
+              <div>Totals</div>
+              <div></div>
+              <div data-fnsku-total>${fnskuTotal()}</div>
+            </div>
+          </div>
+        </div>
+        <div class="fnsku-settings">
+          <label>Choose printing format
+            <select class="sel sm" data-tour="fnsku-format">
+              <option selected>Standard formats</option>
+              <option>Thermal label formats</option>
+            </select>
+          </label>
+          <label>Paper/Sticker Type
+            <select class="sel sm" data-tour="fnsku-sticker-type">
+              <option selected>30-up labels 1&quot; x 2 5/8&quot; on US Letter</option>
+              <option>40-up labels on US Letter</option>
+            </select>
+          </label>
+          <button class="btn primary sm" type="button" data-act="fnsku-print" data-tour="fnsku-print-item-labels">Print Item Labels</button>
+        </div>
+        <div class="fnsku-footer">
+          <button class="btn primary sm" type="button" data-act="fnsku-return" data-tour="fnsku-return-inventory">Return to Inventory List</button>
+        </div>
+      </div>
+    </div>`);
+  }
+
+  A.applyFnskuLabelsScenario = function (s) {
+    if (!s) {
+      A.state.fnskuLabels = null;
+      A.state.modal = null;
+      return;
+    }
+    const itemIndexes = normalizeFnskuIndexes(s.itemIndexes || s.indexes || selectedInventoryIndexes());
+    if (!itemIndexes.length) {
+      A.state.fnskuLabels = null;
+      A.state.modal = null;
+      return;
+    }
+    const qtyDefault = "qtyDefault" in s ? s.qtyDefault : 1;
+    const qty = Array.isArray(s.qty)
+      ? itemIndexes.map((_, i) => {
+          const n = parseInt(s.qty[i], 10);
+          return Number.isFinite(n) && n >= 0 ? n : qtyDefault;
+        })
+      : itemIndexes.map(() => qtyDefault);
+    A.state.groupOpen = false;
+    A.state.recommendedOpen = null;
+    A.state.fnskuLabels = { itemIndexes, qty };
+    A.state.modal = fnskuPrintWindow();
+  };
 
   /* ---------------------- CREATE REMOVAL ORDER ---------------------- */
   A.initRemoval = function () {

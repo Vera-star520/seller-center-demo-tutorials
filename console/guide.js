@@ -18,6 +18,26 @@ window.Guide = (function () {
   /* ---------------- build rail model ---------------- */
   function buildGroups() {
     groups = [];
+    const railOrder = cur.rail && Array.isArray(cur.rail.order) ? cur.rail.order : null;
+    if (railOrder && railOrder.length) {
+      const byKey = {};
+      const add = key => {
+        const g = { key, steps: [], subMap: {}, subOrder: [] };
+        groups.push(g);
+        byKey[key] = g;
+        return g;
+      };
+      railOrder.forEach(add);
+      cur.steps.forEach((s, i) => {
+        const g = byKey[s.mkey] || add(s.mkey);
+        g.steps.push(i);
+        if (s.sub) {
+          if (!(s.sub in g.subMap)) { g.subMap[s.sub] = { code: s.sub, label: s.subLabel || s.sub, first: i, last: i }; g.subOrder.push(s.sub); }
+          g.subMap[s.sub].last = i;
+        }
+      });
+      return;
+    }
     cur.steps.forEach((s, i) => {
       let g = groups[groups.length - 1];
       if (!g || g.key !== s.mkey) { g = { key: s.mkey, steps: [], subMap: {}, subOrder: [] }; groups.push(g); }
@@ -70,9 +90,10 @@ window.Guide = (function () {
             return `<button class="subpill" data-n="${sub.first}"><span class="snum">${code}</span><span class="slbl">${sub.label}</span></button>`;
           }).join("")}</div>`
         : "";
-      return `<div class="mcol" data-g="${gi}"><button class="pnode" data-first="${g.steps[0]}"><span class="ball">${railGlyph(g.key)}</span><span class="plbl">${railLabel(g.key)}</span></button>${subs}</div>`;
+      const target = g.steps.length ? `data-first="${g.steps[0]}"` : `data-complete="true"`;
+      return `<div class="mcol" data-g="${gi}"><button class="pnode" ${target}><span class="ball">${railGlyph(g.key)}</span><span class="plbl">${railLabel(g.key)}</span></button>${subs}</div>`;
     }).join(""));
-    mrow.querySelectorAll(".pnode").forEach(n => n.addEventListener("click", () => go(+n.dataset.first)));
+    mrow.querySelectorAll(".pnode").forEach(n => n.addEventListener("click", () => n.dataset.complete === "true" ? complete() : go(+n.dataset.first)));
     mrow.querySelectorAll(".subpill").forEach(p => p.addEventListener("click", () => go(+p.dataset.n)));
 
     host.querySelector("#gBack").addEventListener("click", exit);

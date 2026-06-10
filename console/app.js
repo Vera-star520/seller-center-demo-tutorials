@@ -15,6 +15,8 @@ window.App = (function () {
     modal: null,                   // {render: fn} or null
     wizard: null,                  // created when entering Send to FC
     removal: null,                 // created when entering Create Removal Order
+    fnskuLabels: null,             // transient state for the Print Item Labels demo window
+    recommendedOpen: null,         // open row index for FBA Inventory recommended-action menu
   };
 
   // ---- tiny helpers ----
@@ -135,6 +137,7 @@ window.App = (function () {
     if ("menuOpen" in spec) state.menuOpen = spec.menuOpen;
     if ("menuExpand" in spec) state.menuExpand = spec.menuExpand;
     if ("groupOpen" in spec) state.groupOpen = spec.groupOpen;
+    if ("recommendedOpen" in spec) state.recommendedOpen = spec.recommendedOpen;
     if (spec.selected) state.selected = new Set(spec.selected);
     if (spec.wizard) {
       if (!state.wizard) App.initWizard();
@@ -145,6 +148,7 @@ window.App = (function () {
       if (App.applyRemovalScenario) App.applyRemovalScenario(state.removal, spec.removal);
     }
     if ("modal" in spec) state.modal = (spec.modal && App.scenarioModal) ? App.scenarioModal(spec.modal) : null;
+    if ("fnskuLabels" in spec && App.applyFnskuLabelsScenario) App.applyFnskuLabelsScenario(spec.fnskuLabels);
     render();
   }
 
@@ -154,6 +158,7 @@ window.App = (function () {
     state.openNav = null;
     state.menuOpen = false;
     state.menuExpand = null;
+    state.recommendedOpen = null;
     if (page === "sendfc" && !state.wizard) App.initWizard();
     if (page === "removal" && !state.removal && App.initRemoval) App.initRemoval();
     render();
@@ -223,9 +228,27 @@ window.App = (function () {
     // click delegation
     root.addEventListener("click", (e) => {
       const t = e.target.closest("[data-act]");
-      if (!t || !root.contains(t)) return;
-      if (t.classList.contains("disabled")) return;
+      let closedRecommended = false;
+      if (state.recommendedOpen != null) {
+        const raRoot = e.target.closest("[data-ra-root]");
+        const clickedIndex = raRoot ? +raRoot.dataset.i : null;
+        const actionName = t && t.dataset.act;
+        const keepOpen = clickedIndex === state.recommendedOpen || actionName === "recommended-toggle";
+        if (!keepOpen) {
+          state.recommendedOpen = null;
+          closedRecommended = true;
+        }
+      }
+      if (!t || !root.contains(t)) {
+        if (closedRecommended) render();
+        return;
+      }
+      if (t.classList.contains("disabled")) {
+        if (closedRecommended) render();
+        return;
+      }
       dispatch(t.dataset.act, { el: t, event: e });
+      if (closedRecommended) render();
     });
     // input/change delegation
     root.addEventListener("input", (e) => {
@@ -252,7 +275,7 @@ window.App = (function () {
     setRoot: function (el) { root = el; },
     reset: function () {
       state.page = "home"; state.openNav = null; state.menuOpen = false; state.menuExpand = null;
-      state.selected.clear(); state.groupOpen = false; state.modal = null; state.wizard = null; state.removal = null;
+      state.selected.clear(); state.groupOpen = false; state.recommendedOpen = null; state.modal = null; state.wizard = null; state.removal = null; state.fnskuLabels = null;
     },
     pages: {}, actions: Object.assign({}, baseActions),
     D,
