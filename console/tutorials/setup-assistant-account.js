@@ -1,5 +1,5 @@
 /* ============================================================
-   Tutorial: How to Set Up an Assistant Account - User Permissions flow.
+   Tutorial: Set Up an Assistant Account - User Permissions flow.
    Requires console/tutorials/_shared.js (loaded first).
    ============================================================ */
 (function () {
@@ -47,7 +47,7 @@
 
   register({
     id: "setup-assistant-account",
-    title: "How to Set Up an Assistant Account",
+    title: "Set Up an Assistant Account",
     category: "Account Access",
     level: "Account setup",
     summary: "Invite FBABEE as an authorized partner and grant limited shipment-support permissions.",

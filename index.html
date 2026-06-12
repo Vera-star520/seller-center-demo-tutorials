@@ -23,10 +23,8 @@
   #library .bar .div { width: 1px; height: 24px; background: var(--line); }
   #library .bar .ttl { font-family: var(--font-d); font-weight: 700; font-size: 14px; color: var(--ink); line-height: 1.25; }
   #library .bar .ttl span { display: block; font-size: 11px; font-weight: 600; color: var(--muted); }
-  #library .bar .right { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 12.5px; color: var(--muted); }
-  #library .demo-open { height: 34px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--navy);
-    background: #fff; color: var(--navy); font-size: 12.5px; font-weight: 700; cursor: pointer; }
-  #library .demo-open:hover { background: var(--navy); color: #fff; }
+  #library .bar .right { margin-left: auto; display: flex; align-items: center; justify-content: flex-end; min-width: 0;
+    font-size: 12.5px; color: var(--muted); text-align: right; }
 
   #library .wrap { max-width: 1240px; margin: 0 auto; padding: 18px 40px 64px; }
   #library .lvl { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--navy); }
@@ -119,7 +117,7 @@
       <img src="console/fbabee-logo.png" alt="FBABEE" />
       <div class="div"></div>
       <div class="ttl">Interactive Seller Console Tutorials<span>Step-by-step Amazon FBA workflows for sellers</span></div>
-      <div class="right"><span>Built for FBABEE customers · Safe demo environment</span><button class="demo-open" type="button" id="demoBrowse">Browse demo console</button></div>
+      <div class="right"><span>Built for FBABEE customers · Safe demo environment</span></div>
     </div>
 
     <div class="wrap">
@@ -155,7 +153,6 @@
       const heroEl = document.getElementById("libHero");
       const grid = document.getElementById("libGrid");
       const catsEl = document.getElementById("libCats");
-      const demoBrowse = document.getElementById("demoBrowse");
       const list = Object.values(window.TUTORIALS);
       let standaloneDemo = false;
       const libraryTutorials = list
@@ -287,7 +284,6 @@
         const c = e.target.closest(".ccard.live"); if (!c) return;
         openTutorial(c.dataset.id);
       });
-      demoBrowse.addEventListener("click", () => openDemoConsole(true));
       window.addEventListener("hashchange", () => {
         if (window.location.hash === "#demo") openDemoConsole(false);
         else closeDemoConsole();

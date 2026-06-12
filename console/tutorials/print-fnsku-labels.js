@@ -1,5 +1,5 @@
 /* ============================================================
-   Tutorial: How to Print FNSKU Labels - FBA Inventory item labels.
+   Tutorial: Print FNSKU Labels - FBA Inventory item labels.
    Requires console/tutorials/_shared.js (loaded first).
    ============================================================ */
 (function () {
@@ -16,7 +16,7 @@
 
   register({
     id: "print-fnsku-labels",
-    title: "How to Print FNSKU Labels",
+    title: "Print FNSKU Labels",
     category: "Inventory",
     level: "Inventory setup",
     summary: "Learn where to download and print FNSKU labels for your FBA products.",
