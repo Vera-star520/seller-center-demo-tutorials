@@ -23,7 +23,10 @@
   #library .bar .div { width: 1px; height: 24px; background: var(--line); }
   #library .bar .ttl { font-family: var(--font-d); font-weight: 700; font-size: 14px; color: var(--ink); line-height: 1.25; }
   #library .bar .ttl span { display: block; font-size: 11px; font-weight: 600; color: var(--muted); }
-  #library .bar .right { margin-left: auto; font-size: 12.5px; color: var(--muted); }
+  #library .bar .right { margin-left: auto; display: flex; align-items: center; gap: 12px; font-size: 12.5px; color: var(--muted); }
+  #library .demo-open { height: 34px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--navy);
+    background: #fff; color: var(--navy); font-size: 12.5px; font-weight: 700; cursor: pointer; }
+  #library .demo-open:hover { background: var(--navy); color: #fff; }
 
   #library .wrap { max-width: 1240px; margin: 0 auto; padding: 18px 40px 64px; }
   #library .lvl { font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--navy); }
@@ -116,7 +119,7 @@
       <img src="console/fbabee-logo.png" alt="FBABEE" />
       <div class="div"></div>
       <div class="ttl">Interactive Seller Console Tutorials<span>Step-by-step Amazon FBA workflows for sellers</span></div>
-      <div class="right">Built for FBABEE customers · Safe demo environment</div>
+      <div class="right"><span>Built for FBABEE customers · Safe demo environment</span><button class="demo-open" type="button" id="demoBrowse">Browse demo console</button></div>
     </div>
 
     <div class="wrap">
@@ -143,6 +146,7 @@
   <script src="console/tutorials/shipping-plan.js"></script>
   <script src="console/tutorials/print-fnsku-labels.js"></script>
   <script src="console/tutorials/removal-order.js"></script>
+  <script src="console/tutorials/setup-assistant-account.js"></script>
   <script src="console/tutorials/_placeholders.js"></script>
   <script src="console/guide.js"></script>
   <script src="console/_smoke.js"></script>
@@ -151,7 +155,9 @@
       const heroEl = document.getElementById("libHero");
       const grid = document.getElementById("libGrid");
       const catsEl = document.getElementById("libCats");
+      const demoBrowse = document.getElementById("demoBrowse");
       const list = Object.values(window.TUTORIALS);
+      let standaloneDemo = false;
       const libraryTutorials = list
         .filter(t => Number.isFinite(t.libraryOrder))
         .sort((a, b) => a.libraryOrder - b.libraryOrder);
@@ -252,6 +258,26 @@
         document.getElementById("player").style.display = "none";
         document.getElementById("library").style.display = "";
       }
+      function openDemoConsole(pushHash) {
+        if (pushHash !== false && window.location.hash !== "#demo") {
+          window.location.hash = "demo";
+          return;
+        }
+        standaloneDemo = true;
+        document.getElementById("library").style.display = "none";
+        const host = document.getElementById("player");
+        host.style.display = "block";
+        host.innerHTML = `<div id="app" style="height:100vh"></div>`;
+        window.App.reset();
+        window.App.mount(host.querySelector("#app"));
+      }
+      function closeDemoConsole() {
+        if (!standaloneDemo) return;
+        standaloneDemo = false;
+        const host = document.getElementById("player");
+        host.innerHTML = "";
+        backToLibrary();
+      }
 
       heroEl.addEventListener("click", e => {
         const h = e.target.closest(".a-hero.live"); if (!h) return;
@@ -261,9 +287,15 @@
         const c = e.target.closest(".ccard.live"); if (!c) return;
         openTutorial(c.dataset.id);
       });
+      demoBrowse.addEventListener("click", () => openDemoConsole(true));
+      window.addEventListener("hashchange", () => {
+        if (window.location.hash === "#demo") openDemoConsole(false);
+        else closeDemoConsole();
+      });
 
       renderHero(featured);
       renderGrid();
+      if (window.location.hash === "#demo") openDemoConsole(false);
     })();
   </script>
 </body>

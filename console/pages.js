@@ -20,6 +20,26 @@
      data-tour="fnsku-*"         Print Labels for Individual Products demo window
      data-tour="fnsku-label-row-{i}" Print Labels modal SKU row
      data-tour="removal-*"       Create Removal Order flow anchors
+     data-tour="settings-gear-button" Top Settings gear button
+     data-tour="settings-user-permissions-menu-item" Settings menu User Permissions link
+     data-tour="user-permissions-page" User Permissions demo wrapper
+     data-tour="user-management-tab" Top User Management tab
+     data-tour="open-invitations-tab" Top Open Invitations tab
+     data-tour="authorised-partners-tab" Authorised Partners secondary tab
+     data-tour="add-authorised-partner-button" Add Authorised Partner button
+     data-tour="authorized-partner-invite-modal" Add partner invitation modal
+     data-tour="copy-invitation-link-button" Copy demo invitation link button
+     data-tour="close-invitation-modal-button" Close invitation modal button
+     data-tour="fbabee-open-invitation-row" FBABEE open invitation row
+     data-tour="fbabee-invitation-actions-button" Invitation row Actions button
+     data-tour="accept-fbabee-invitation-menu-item" Accept invitation menu item
+     data-tour="assistant-permissions-page" Assistant permission setup page
+     data-tour="permission-awd-secondary-user-access-edit" Edit radio for AWD Secondary User Access
+     data-tour="permission-fulfillment-programs-edit" Edit radio for Fulfillment Programs
+     data-tour="permission-inventory-planning-edit" Edit radio for Inventory Planning
+     data-tour="permission-inventory-performance-edit" Edit radio for Inventory performance
+     data-tour="permission-manage-fba-inventory-shipments-edit" Edit radio for FBA inventory shipments
+     data-tour="permissions-save-changes-button" Permission setup Save Changes button
    ============================================================ */
 (function () {
   const A = window.App, D = window.DATA, esc = A.esc;
@@ -441,6 +461,425 @@
     A.state.fnskuLabels = { itemIndexes, qty };
     A.state.modal = fnskuPrintWindow();
   };
+
+  /* ---------------- USER PERMISSIONS / AUTHORISED PARTNERS ---------------- */
+  const INVITE_LINK = "sellercentral.amazon.example/invite/demo-token";
+
+  function topTab(key, label, tour) {
+    const on = A.state.userPermissionsTopTab === key;
+    return `<button class="up-top-tab ${on ? "on" : ""}" type="button" data-act="up-top-tab" data-tab="${key}"${tour ? ` data-tour="${tour}"` : ""}>${label}</button>`;
+  }
+
+  function userPermissionsNav() {
+    return `
+    <div class="up-nav">
+      <span class="up-crumb">User Permissions</span>
+      <span class="up-arrow">&#8594;</span>
+      ${topTab("management", "User Management", "user-management-tab")}
+      ${topTab("addEmployee", "Add employee")}
+      ${topTab("openInvitations", "Open invitations", "open-invitations-tab")}
+    </div>`;
+  }
+
+  function subTab(group, key, label, tour) {
+    const activeKey = group === "management" ? A.state.userManagementTab : A.state.openInvitationsTab;
+    const on = activeKey === key;
+    return `<button class="up-subtab ${on ? "on" : ""}" type="button" data-act="up-sub-tab" data-group="${group}" data-tab="${key}"${tour ? ` data-tour="${tour}"` : ""}>${label}</button>`;
+  }
+
+  A.pages.userPermissions = function () {
+    const tab = A.state.userPermissionsTopTab || "management";
+    let body = "";
+    if (tab === "addEmployee") body = addEmployeePage();
+    else if (tab === "openInvitations") body = openInvitationsPage();
+    else body = userManagementPage();
+    return `<div class="up-page" data-tour="user-permissions-page">${userPermissionsNav()}${body}</div>`;
+  };
+
+  function userManagementPage() {
+    const sub = A.state.userManagementTab || "employees";
+    return `
+    <section class="up-shell">
+      <div class="up-titleline">
+        <div>
+          <h1 class="up-title">Manage employees</h1>
+          <p class="up-sub">Add, remove or update who can access your demo seller account.</p>
+        </div>
+        <div class="up-titlelinks"><a>Learn more</a><a>Take the Tour</a></div>
+      </div>
+      <div class="up-card">
+        <div class="up-subtabs">
+          ${subTab("management", "employees", "Employees")}
+          ${subTab("management", "authorisedPartners", "Authorised Partners", "authorised-partners-tab")}
+        </div>
+        ${sub === "authorisedPartners" ? authorisedPartnersPanel() : employeesPanel()}
+      </div>
+    </section>`;
+  }
+
+  function employeesPanel() {
+    return `
+    <div class="up-toolbar">
+      <div class="up-search"><input placeholder="Search" readonly><button type="button" aria-label="Search">&#9906;</button></div>
+      <button class="btn primary sm" type="button">Add employee</button>
+    </div>
+    <div class="up-table">
+      <div class="up-thead" style="grid-template-columns:1.3fr 1.4fr 1fr 0.8fr 86px">
+        <span>Name</span><span>Email Address</span><span>Account Role</span><span>Status</span><span></span>
+      </div>
+      <div class="up-trow" style="grid-template-columns:1.3fr 1.4fr 1fr 0.8fr 86px">
+        <a>Demo Owner</a><span>owner@example.com</span><span>Owner</span><span class="pill green">Active</span><button class="btn dark sm" type="button">View</button>
+      </div>
+    </div>
+    ${upPager()}`;
+  }
+
+  function authorisedPartnersPanel() {
+    return `
+    <div class="up-toolbar">
+      <div class="up-search"><input placeholder="Search" readonly><button type="button" aria-label="Search">&#9906;</button></div>
+      <button class="btn primary sm" type="button" data-act="open-authorised-partner-modal" data-tour="add-authorised-partner-button">Add Authorised Partner</button>
+    </div>
+    <div class="up-table">
+      <div class="up-thead" style="grid-template-columns:1fr 150px"><span>Name</span><span></span></div>
+      <div class="up-empty-row" style="grid-template-columns:1fr 150px">
+        <span>No authorised partner has been granted access in this demo yet.</span>
+        <button class="btn dark sm" type="button">Edit</button>
+      </div>
+    </div>
+    ${upPager()}`;
+  }
+
+  function addEmployeePage() {
+    return `
+    <section class="up-shell">
+      <div class="up-titleline">
+        <div>
+          <h1 class="up-title">Add employee</h1>
+          <p class="up-sub">This safe placeholder keeps the tab browseable without creating real users.</p>
+        </div>
+      </div>
+      <div class="up-card up-form-card">
+        <div class="fld"><label>Name</label><input class="inp" value="Demo Assistant" readonly></div>
+        <div class="fld"><label>Email address</label><input class="inp" value="assistant@example.com" readonly></div>
+        <button class="btn primary disabled" type="button">Send invitation</button>
+      </div>
+    </section>`;
+  }
+
+  function openInvitationsPage() {
+    const sub = A.state.openInvitationsTab || "authorisedPartners";
+    return `
+    <section class="up-shell">
+      <div class="up-titleline">
+        <div>
+          <h1 class="up-title">Open invites</h1>
+          <p class="up-sub">Users that have been invited and have not created their account or need their email address confirmed will show up here.</p>
+        </div>
+        <div class="up-titlelinks"><a>Learn more</a></div>
+      </div>
+      <div class="up-card">
+        <div class="up-subtabs">
+          ${subTab("openInvitations", "users", "Users")}
+          ${subTab("openInvitations", "authorisedPartners", "Authorised Partners", "authorised-partners-tab")}
+        </div>
+        ${sub === "authorisedPartners" ? authorisedPartnerInvitesPanel() : userInvitesPanel()}
+      </div>
+    </section>`;
+  }
+
+  function userInvitesPanel() {
+    return `
+    <div class="up-toolbar">
+      <div class="up-search"><input placeholder="Search" readonly><button type="button" aria-label="Search">&#9906;</button></div>
+    </div>
+    <div class="up-table">
+      <div class="up-thead" style="grid-template-columns:1fr 1fr 0.8fr"><span>Name</span><span>Email Address</span><span>Status</span></div>
+      <div class="up-empty">No user invitations are open in this safe demo.</div>
+    </div>
+    ${upPager()}`;
+  }
+
+  function authorisedPartnerInvitesPanel() {
+    const row = A.state.assistantInviteCreated ? `
+      <div class="up-trow up-invite-row" style="grid-template-columns:1.2fr 1.2fr 0.7fr 170px" data-tour="fbabee-open-invitation-row">
+        <span>FBABEE</span>
+        <span>FBABEE</span>
+        <span>Open</span>
+        <div class="up-actions" data-invite-actions-root>
+          <div class="ra-split ${A.state.assistantInviteActionsOpen ? "open" : ""}">
+            <button class="ra-main" type="button" data-act="fbabee-invite-actions-toggle" data-tour="fbabee-invitation-actions-button">Actions</button>
+            <button class="ra-caret" type="button" data-act="fbabee-invite-actions-toggle" aria-label="Open invitation actions">${DCARET}</button>
+          </div>
+          ${A.state.assistantInviteActionsOpen ? `<div class="up-action-menu">
+            <button class="ra-item" type="button" data-act="accept-fbabee-invitation" data-tour="accept-fbabee-invitation-menu-item">Accept invitation</button>
+            <button class="ra-item" type="button" data-act="reject-fbabee-invitation">Reject invitation</button>
+          </div>` : ""}
+        </div>
+      </div>` : `<div class="up-empty">No authorised partner invitations are open yet. Use <b>Add Authorised Partner</b>, then copy the demo link to create the safe FBABEE invitation row.</div>`;
+    return `
+    <div class="up-toolbar">
+      <div class="up-search"><input placeholder="Search" readonly><button type="button" aria-label="Search">&#9906;</button></div>
+    </div>
+    <div class="up-table">
+      <div class="up-thead" style="grid-template-columns:1.2fr 1.2fr 0.7fr 170px"><span>Company</span><span>Sender Name</span><span>Status</span><span></span></div>
+      ${row}
+    </div>
+    ${upPager()}`;
+  }
+
+  function upPager() {
+    return `<div class="up-pager"><span>Page</span><span class="up-pagebox">1</span><span>of 1</span><button class="btn dark sm" type="button">Go</button><span class="sp"></span><button class="up-results" type="button">10 results per page ${DCARET}</button></div>`;
+  }
+
+  function authorisedPartnerInviteModal() {
+    return A.el(`<div class="modal up-modal" role="dialog" aria-modal="true" aria-label="Send Invitation" data-tour="authorized-partner-invite-modal">
+      <div class="modal-head">
+        <h3>Send Invitation</h3>
+        <span class="x" data-act="close-modal" aria-label="Close">&#10005;</span>
+      </div>
+      <div class="modal-body">
+        <ol class="up-invite-steps">
+          <li>
+            <b>Copy the one-time invitation link.</b>
+            <div class="up-copyline">
+              <input class="inp" value="${INVITE_LINK}" readonly aria-label="Demo one-time invitation link">
+              <button class="btn dark sm" type="button" data-act="copy-invite-link" data-tour="copy-invitation-link-button">Copy link</button>
+            </div>
+          </li>
+          <li>Send this demo link to your service provider through your normal training channel.</li>
+          <li>The provider will open the link and accept an invitation to your sandbox account.</li>
+          <li>After accepting, you choose the limited demo permissions they need.</li>
+        </ol>
+      </div>
+      <div class="modal-foot">
+        <button class="btn primary sm" type="button" data-act="close-modal" data-tour="close-invitation-modal-button">Close</button>
+      </div>
+    </div>`);
+  }
+  A.assistantPartnerInviteModal = authorisedPartnerInviteModal;
+
+  function permissionRows() {
+    return [
+      {
+        id: "addProductsViaUpload",
+        label: "Add Products via Upload",
+        desc: "Upload a bulk product spreadsheet or text file in the safe demo.",
+      },
+      {
+        id: "awdSecondaryUserAccess",
+        label: "Amazon Warehousing and Distribution - Secondary User Access",
+        desc: "Allow the partner to edit AWD-related secondary access settings in this sandbox.",
+        editTour: "permission-awd-secondary-user-access-edit",
+      },
+      {
+        id: "europeanExpansionAccelerator",
+        label: "European Expansion Accelerator",
+        desc: "Placeholder access for expansion recommendations in the demo account.",
+      },
+      {
+        id: "fbaAnalytics",
+        label: "FBA Analytics",
+        desc: "View inventory and sales in a simplified visual dashboard.",
+      },
+      {
+        id: "fbaDashboard",
+        label: "FBA dashboard",
+        desc: "View high-level FBA operational status in the demo.",
+      },
+      {
+        id: "fulfillmentPrograms",
+        label: "Fulfillment Programs",
+        desc: "Allow edit access to fulfilment programme settings needed for assistant-account training.",
+        editTour: "permission-fulfillment-programs-edit",
+      },
+      {
+        id: "globalFbaInventory",
+        label: "Global FBA Inventory",
+        desc: "Placeholder row for global inventory visibility.",
+      },
+      {
+        id: "imageManagement",
+        label: "Image Management",
+        desc: "Placeholder row for image update access.",
+      },
+      {
+        id: "inboundPerformanceDashboard",
+        label: "Inbound performance dashboard",
+        desc: "Review inbound shipment risk and learning placeholders.",
+      },
+      {
+        id: "inventoryPlanning",
+        label: "Inventory Planning",
+        desc: "Allow edit access to inventory planning tools used for replenishment and shipment preparation.",
+        editTour: "permission-inventory-planning-edit",
+      },
+      {
+        id: "inventoryPerformance",
+        label: "Inventory performance",
+        desc: "Allow edit access to inventory performance tools used to review operational health.",
+        editTour: "permission-inventory-performance-edit",
+      },
+      {
+        id: "itemClassificationGuide",
+        label: "Item Classification Guide",
+        desc: "Placeholder row for classification guidance.",
+      },
+      {
+        id: "listByUploadingNonAmazonFile",
+        label: "List by uploading Non-Amazon File",
+        desc: "Upload a Non-Amazon file to pre-fill a demo listing template.",
+      },
+      {
+        id: "manageFbaInventoryShipments",
+        label: "Manage FBA Inventory/Shipments",
+        desc: "Allow shipment-prep edits for FBA inventory workflows used in this demo.",
+        editTour: "permission-manage-fba-inventory-shipments-edit",
+      },
+      {
+        id: "manageFbaReturns",
+        label: "Manage FBA returns",
+        desc: "Placeholder row for return status review.",
+      },
+    ];
+  }
+
+  A.pages.assistantPermissions = function () {
+    const touched = !!A.state.assistantPermissionsTouched;
+    return `
+    <div class="up-page assistant-perms" data-tour="assistant-permissions-page">
+      <div class="up-nav">
+        <span class="up-crumb">User Permissions</span>
+        <span class="up-arrow">&#8594;</span>
+        <button class="up-top-tab on" type="button">Edit User Permissions</button>
+      </div>
+      <section class="up-shell up-narrow">
+        <div class="up-titleline">
+          <div>
+            <h1 class="up-title">Edit User Permissions</h1>
+            <p class="up-sub">Managing limited demo access for FBABEE. Choose only the permissions needed for shipment support.</p>
+          </div>
+          <span class="pill blue">Safe sandbox</span>
+        </div>
+        <div class="up-note">This page is a simulation. It does not grant real Seller Central access and does not connect to Amazon.</div>
+        <div class="up-card perm-card">
+          <div class="perm-intro">
+            <h2>Modify user permissions</h2>
+            <p>Set each row independently. For assistant-account training, prefer the narrowest level that supports the task.</p>
+          </div>
+          ${permissionPlaceholderSections()}
+          ${permissionSection("Inventory", permissionRows())}
+        </div>
+        ${A.state.assistantPermissionsSaved ? `<div class="up-save-note">Demo permission changes saved.</div>` : ""}
+        <div class="perm-savebar">
+          <button class="btn primary ${touched ? "" : "disabled"}" type="button" data-act="permissions-save" data-tour="permissions-save-changes-button">Save Changes</button>
+        </div>
+      </section>
+    </div>`;
+  };
+
+  function permissionSection(title, rows) {
+    return `
+    <div class="perm-section">
+      <div class="perm-head">
+        <span>${esc(title)}</span><span>None</span><span>View</span><span>Edit</span><span>Admin</span>
+      </div>
+      ${rows.map(permissionRow).join("")}
+    </div>`;
+  }
+
+  function permissionPlaceholderSections() {
+    return `
+    <div class="perm-prelude">
+      ${permissionSkeletonSection("Advertising", ["Campaign manager", "Sponsored ads reports"])}
+      ${permissionSkeletonSection("Growth", ["Growth opportunities", "Promotions and recommendations"])}
+    </div>`;
+  }
+
+  function permissionSkeletonSection(title, lines) {
+    const rows = lines.map((_, i) => `
+      <div class="perm-skel-row">
+        <span class="sk sk-line" style="width:${i ? "46%" : "58%"}"></span>
+        <span class="sk sk-dot"></span>
+        <span class="sk sk-dot"></span>
+        <span class="sk sk-dot"></span>
+        <span class="sk sk-dot"></span>
+      </div>`).join("");
+    return `
+    <div class="perm-skel-section">
+      <div class="perm-skel-head">
+        <span>${esc(title)}</span><span>None</span><span>View</span><span>Edit</span><span>Admin</span>
+      </div>
+      ${rows}
+    </div>`;
+  }
+
+  function permissionRow(row) {
+    const value = A.state.assistantPermissions[row.id] || "none";
+    const cell = (level) => {
+      const on = value === level;
+      const tour = level === "edit" && row.editTour ? ` data-tour="${row.editTour}"` : "";
+      return `<button class="perm-radio" type="button" data-act="permission-select" data-perm="${row.id}" data-level="${level}" aria-label="${esc(row.label)} ${level}"${tour}><span class="radio ${on ? "on" : ""}"></span></button>`;
+    };
+    return `
+    <div class="perm-row">
+      <div class="perm-name"><b>${esc(row.label)}</b><span>${esc(row.desc)}</span></div>
+      ${cell("none")}
+      ${cell("view")}
+      ${cell("edit")}
+      ${cell("admin")}
+    </div>`;
+  }
+
+  Object.assign(A.actions, {
+    "up-top-tab": (ctx) => {
+      const tab = ctx.el.dataset.tab;
+      A.state.userPermissionsTopTab = tab;
+      if (tab === "management" && !A.state.userManagementTab) A.state.userManagementTab = "employees";
+      if (tab === "openInvitations") A.state.openInvitationsTab = "authorisedPartners";
+      A.state.assistantInviteActionsOpen = false;
+      A.render();
+    },
+    "up-sub-tab": (ctx) => {
+      const group = ctx.el.dataset.group;
+      const tab = ctx.el.dataset.tab;
+      if (group === "management") A.state.userManagementTab = tab;
+      else A.state.openInvitationsTab = tab;
+      A.state.assistantInviteActionsOpen = false;
+      A.render();
+    },
+    "open-authorised-partner-modal": () => {
+      A.openModal(authorisedPartnerInviteModal());
+    },
+    "copy-invite-link": () => {
+      A.state.assistantInviteCreated = true;
+      A.showToast("Demo invitation link copied.");
+    },
+    "fbabee-invite-actions-toggle": () => {
+      A.state.assistantInviteActionsOpen = !A.state.assistantInviteActionsOpen;
+      A.render();
+    },
+    "accept-fbabee-invitation": () => {
+      A.state.assistantInviteActionsOpen = false;
+      A.navigate("assistantPermissions");
+    },
+    "reject-fbabee-invitation": () => {
+      A.state.assistantInviteActionsOpen = false;
+      A.state.assistantInviteCreated = false;
+      A.showToast("Demo invitation rejected.");
+    },
+    "permission-select": (ctx) => {
+      A.state.assistantPermissions[ctx.el.dataset.perm] = ctx.el.dataset.level;
+      A.state.assistantPermissionsTouched = true;
+      A.state.assistantPermissionsSaved = false;
+      A.render({ preservePageScroll: true });
+    },
+    "permissions-save": () => {
+      if (!A.state.assistantPermissionsTouched) return;
+      A.state.assistantPermissionsSaved = true;
+      A.showToast("Demo permission changes saved.", { preservePageScroll: true });
+    },
+  });
 
   /* ---------------------- CREATE REMOVAL ORDER ---------------------- */
   A.initRemoval = function () {

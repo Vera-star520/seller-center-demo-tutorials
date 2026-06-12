@@ -5,19 +5,47 @@
    ============================================================ */
 window.App = (function () {
   const D = window.DATA;
+  const ASSISTANT_PERMISSION_DEFAULTS = {
+    awdSecondaryUserAccess: "none",
+    fulfillmentPrograms: "none",
+    inventoryPlanning: "none",
+    inventoryPerformance: "none",
+    manageFbaInventoryShipments: "none",
+    addProductsViaUpload: "none",
+    europeanExpansionAccelerator: "none",
+    fbaAnalytics: "none",
+    fbaDashboard: "none",
+    globalFbaInventory: "none",
+    imageManagement: "none",
+    inboundPerformanceDashboard: "none",
+    itemClassificationGuide: "none",
+    listByUploadingNonAmazonFile: "none",
+    manageFbaReturns: "none",
+  };
 
   const state = {
     page: "home",
     openNav: null,                 // 'inventory' | 'shipments' | null
     menuOpen: false,               // hamburger slide menu
     menuExpand: null,              // expanded section in slide menu
+    settingsOpen: false,            // top-right Settings menu
     selected: new Set(),           // selected SKU indices on FBA Inventory
     modal: null,                   // {render: fn} or null
     wizard: null,                  // created when entering Send to FC
     removal: null,                 // created when entering Create Removal Order
     fnskuLabels: null,             // transient state for the Print Item Labels demo window
     recommendedOpen: null,         // open row index for FBA Inventory recommended-action menu
+    toast: null,                   // transient demo toast message
+    userPermissionsTopTab: "management",
+    userManagementTab: "employees",
+    openInvitationsTab: "authorisedPartners",
+    assistantInviteCreated: false,
+    assistantInviteActionsOpen: false,
+    assistantPermissions: Object.assign({}, ASSISTANT_PERMISSION_DEFAULTS),
+    assistantPermissionsTouched: false,
+    assistantPermissionsSaved: false,
   };
+  let toastTimer = null;
 
   // ---- tiny helpers ----
   function el(html) {
@@ -74,7 +102,27 @@ window.App = (function () {
       <div class="store-pill"><b>${esc(D.STORE.name)}</b><span class="div"></span>${esc(D.STORE.country)}</div>
       <div class="topsearch"><input placeholder="Search" readonly><button>&#9906;</button></div>
       <div class="topright">
-        <span class="ic">&#9881;</span><span>EN &#9662;</span><span>Help</span>
+        <span class="toggle"><span class="sw"></span> New Seller Central</span>
+        <span class="ic">&#10022;</span>
+        <span class="ic">&#9993;</span>
+        <div class="settings-menu ${state.settingsOpen ? "open" : ""}" data-settings-root>
+          <button class="ic settings-trigger" type="button" data-act="settings-toggle" data-tour="settings-gear-button" aria-label="Settings">&#9881;</button>
+          <div class="settings-dropdown" role="menu" aria-label="Settings">
+            <button class="settings-item" type="button" role="menuitem">Account Info</button>
+            <button class="settings-item" type="button" role="menuitem">Manage Accounts</button>
+            <button class="settings-item" type="button" role="menuitem">Notification Preferences</button>
+            <button class="settings-item" type="button" role="menuitem">Login Settings</button>
+            <button class="settings-item" type="button" role="menuitem">Return Settings</button>
+            <button class="settings-item" type="button" role="menuitem">Shipping Settings</button>
+            <button class="settings-item" type="button" role="menuitem">Tax Settings</button>
+            <button class="settings-item" type="button" role="menuitem" data-act="goto-user-permissions" data-tour="settings-user-permissions-menu-item">User Permissions</button>
+            <button class="settings-item" type="button" role="menuitem">Your Info &amp; Policies</button>
+            <button class="settings-item" type="button" role="menuitem">Fulfilment by Amazon</button>
+            <button class="settings-item settings-sep" type="button" role="menuitem">Show Favourites Bar</button>
+            <button class="settings-item" type="button" role="menuitem">Log out</button>
+          </div>
+        </div>
+        <span>EN &#9662;</span><span>Help</span>
       </div>
     </div>`;
   }
@@ -122,6 +170,17 @@ window.App = (function () {
   // ---- modal ----
   function openModal(node) { state.modal = node; render(); }
   function closeModal() { state.modal = null; render(); }
+  function showToast(message, options) {
+    state.toast = message;
+    render(options);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      if (state.toast === message) {
+        state.toast = null;
+        render(options);
+      }
+    }, 2400);
+  }
 
   // ---- scenario: the single narrow entry point tutorials use to set state ----
   // A tutorial describes the console state it needs declaratively; the Demo owns
@@ -136,9 +195,18 @@ window.App = (function () {
     if ("openNav" in spec) state.openNav = spec.openNav;
     if ("menuOpen" in spec) state.menuOpen = spec.menuOpen;
     if ("menuExpand" in spec) state.menuExpand = spec.menuExpand;
+    if ("settingsOpen" in spec) state.settingsOpen = spec.settingsOpen;
     if ("groupOpen" in spec) state.groupOpen = spec.groupOpen;
     if ("recommendedOpen" in spec) state.recommendedOpen = spec.recommendedOpen;
     if (spec.selected) state.selected = new Set(spec.selected);
+    if ("userPermissionsTopTab" in spec) state.userPermissionsTopTab = spec.userPermissionsTopTab;
+    if ("userManagementTab" in spec) state.userManagementTab = spec.userManagementTab;
+    if ("openInvitationsTab" in spec) state.openInvitationsTab = spec.openInvitationsTab;
+    if ("assistantInviteCreated" in spec) state.assistantInviteCreated = spec.assistantInviteCreated;
+    if ("assistantInviteActionsOpen" in spec) state.assistantInviteActionsOpen = spec.assistantInviteActionsOpen;
+    if ("assistantPermissions" in spec) state.assistantPermissions = Object.assign({}, ASSISTANT_PERMISSION_DEFAULTS, spec.assistantPermissions || {});
+    if ("assistantPermissionsTouched" in spec) state.assistantPermissionsTouched = spec.assistantPermissionsTouched;
+    if ("assistantPermissionsSaved" in spec) state.assistantPermissionsSaved = spec.assistantPermissionsSaved;
     if (spec.wizard) {
       if (!state.wizard) App.initWizard();
       if (App.applyWizardScenario) App.applyWizardScenario(state.wizard, spec.wizard);
@@ -148,6 +216,7 @@ window.App = (function () {
       if (App.applyRemovalScenario) App.applyRemovalScenario(state.removal, spec.removal);
     }
     if ("modal" in spec) state.modal = (spec.modal && App.scenarioModal) ? App.scenarioModal(spec.modal) : null;
+    if ("assistantInviteModal" in spec) state.modal = spec.assistantInviteModal && App.assistantPartnerInviteModal ? App.assistantPartnerInviteModal() : null;
     if ("fnskuLabels" in spec && App.applyFnskuLabelsScenario) App.applyFnskuLabelsScenario(spec.fnskuLabels);
     render();
   }
@@ -158,7 +227,9 @@ window.App = (function () {
     state.openNav = null;
     state.menuOpen = false;
     state.menuExpand = null;
+    state.settingsOpen = false;
     state.recommendedOpen = null;
+    state.assistantInviteActionsOpen = false;
     if (page === "sendfc" && !state.wizard) App.initWizard();
     if (page === "removal" && !state.removal && App.initRemoval) App.initRemoval();
     render();
@@ -169,18 +240,24 @@ window.App = (function () {
   const renderHooks = [];
   function onRender(fn) { renderHooks.push(fn); }
 
-  function render() {
+  function render(options) {
     if (!root) return;
+    const preservePageScroll = options && options.preservePageScroll;
+    const pageBeforeRender = state.page;
+    const scBeforeRender = preservePageScroll ? root.querySelector("#pageScroll") : null;
+    const scrollTopBeforeRender = scBeforeRender ? scBeforeRender.scrollTop : null;
     const showFbaNav = ["inventory", "shipments", "sendfc", "removal", "awd"].includes(state.page);
+    const fullPage = ["sendfc", "inventory", "removal", "userPermissions", "assistantPermissions"].includes(state.page);
     const pageFn = App.pages[state.page] || App.pages.home;
     root.innerHTML = `
       <div class="console">
         ${topbar()}
         ${showFbaNav ? subbar() : ""}
         ${showFbaNav ? fbanav() : ""}
-        <div class="page ${state.page === "sendfc" || state.page === "inventory" || state.page === "removal" ? "full" : ""}" id="pageScroll">
+        <div class="page ${fullPage ? "full" : ""}" id="pageScroll">
           <div class="page-inner">${pageFn()}</div>
         </div>
+        ${state.toast ? `<div class="toast" role="status">${esc(state.toast)}</div>` : ""}
       </div>`;
     if (App.pages[state.page + "After"]) App.pages[state.page + "After"]();
     if (state.menuOpen) {
@@ -193,15 +270,25 @@ window.App = (function () {
       scrim.addEventListener("mousedown", (e) => { if (e.target === scrim) closeModal(); });
       root.appendChild(scrim);
     }
+    if (scrollTopBeforeRender != null && state.page === pageBeforeRender) {
+      const scAfterRender = root.querySelector("#pageScroll");
+      if (scAfterRender) scAfterRender.scrollTop = scrollTopBeforeRender;
+    }
     renderHooks.forEach(fn => fn(state));
   }
 
   // ---- delegated dispatch ----
   const baseActions = {
     "goto": (ctx) => navigate(ctx.el.dataset.page),
+    "goto-user-permissions": () => {
+      state.userPermissionsTopTab = "management";
+      state.userManagementTab = "employees";
+      navigate("userPermissions");
+    },
     "menu-toggle": () => { state.menuOpen = !state.menuOpen; if (!state.menuOpen) state.menuExpand = null; render(); },
     "menu-expand": (ctx) => { const s = ctx.el.dataset.sec; state.menuExpand = state.menuExpand === s ? null : s; render(); },
     "menu-noop": () => {},
+    "settings-toggle": () => { state.settingsOpen = !state.settingsOpen; render(); },
     "nav-toggle": (ctx) => { const n = ctx.el.dataset.nav; state.openNav = state.openNav === n ? null : n; render(); },
     "close-modal": () => closeModal(),
     "inv-check": (ctx) => {
@@ -229,6 +316,16 @@ window.App = (function () {
     root.addEventListener("click", (e) => {
       const t = e.target.closest("[data-act]");
       let closedRecommended = false;
+      let closedSettings = false;
+      let closedInviteActions = false;
+      if (state.settingsOpen && !e.target.closest("[data-settings-root]")) {
+        state.settingsOpen = false;
+        closedSettings = true;
+      }
+      if (state.assistantInviteActionsOpen && !e.target.closest("[data-invite-actions-root]")) {
+        state.assistantInviteActionsOpen = false;
+        closedInviteActions = true;
+      }
       if (state.recommendedOpen != null) {
         const raRoot = e.target.closest("[data-ra-root]");
         const clickedIndex = raRoot ? +raRoot.dataset.i : null;
@@ -240,15 +337,15 @@ window.App = (function () {
         }
       }
       if (!t || !root.contains(t)) {
-        if (closedRecommended) render();
+        if (closedRecommended || closedSettings || closedInviteActions) render();
         return;
       }
       if (t.classList.contains("disabled")) {
-        if (closedRecommended) render();
+        if (closedRecommended || closedSettings || closedInviteActions) render();
         return;
       }
       dispatch(t.dataset.act, { el: t, event: e });
-      if (closedRecommended) render();
+      if (closedRecommended || closedSettings || closedInviteActions) render();
     });
     // input/change delegation
     root.addEventListener("input", (e) => {
@@ -268,14 +365,17 @@ window.App = (function () {
 
   return {
     state, mount, render, navigate, el, esc,
-    openModal, closeModal, onRender, setScenario,
+    openModal, closeModal, showToast, onRender, setScenario,
     // Render target accessors — let the smoke harness render into an off-screen
     // node and restore the live mount afterward, without re-binding listeners.
     getRoot: function () { return root; },
     setRoot: function (el) { root = el; },
     reset: function () {
-      state.page = "home"; state.openNav = null; state.menuOpen = false; state.menuExpand = null;
+      state.page = "home"; state.openNav = null; state.menuOpen = false; state.menuExpand = null; state.settingsOpen = false;
       state.selected.clear(); state.groupOpen = false; state.recommendedOpen = null; state.modal = null; state.wizard = null; state.removal = null; state.fnskuLabels = null;
+      state.toast = null; state.userPermissionsTopTab = "management"; state.userManagementTab = "employees"; state.openInvitationsTab = "authorisedPartners";
+      state.assistantInviteCreated = false; state.assistantInviteActionsOpen = false; state.assistantPermissions = Object.assign({}, ASSISTANT_PERMISSION_DEFAULTS);
+      state.assistantPermissionsTouched = false; state.assistantPermissionsSaved = false;
     },
     pages: {}, actions: Object.assign({}, baseActions),
     D,
