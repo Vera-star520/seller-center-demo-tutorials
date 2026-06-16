@@ -40,6 +40,16 @@
      data-tour="permission-inventory-performance-edit" Edit radio for Inventory performance
      data-tour="permission-manage-fba-inventory-shipments-edit" Edit radio for FBA inventory shipments
      data-tour="permissions-save-changes-button" Permission setup Save Changes button
+     data-tour="shipments-menu-item" Main menu Shipments section
+     data-tour="manage-shipments-menu-item" Main menu Manage Shipments link
+     data-tour="manage-shipments-page" Manage Shipments page wrapper
+     data-tour="shipping-queue-page" Shipping Queue content wrapper
+     data-tour="shipment-id-search-input" Shipping Queue Shipment ID search field
+     data-tour="shipment-id-search-button" Shipping Queue search button
+     data-tour="demo-shipment-row" Searchable safe demo shipment row
+     data-tour="demo-shipment-id-cell" Safe demo Shipment ID cell
+     data-tour="demo-reference-id-cell" Safe demo Reference ID cell
+     data-tour="shipment-search-empty-state" Safe empty search result
    ============================================================ */
 (function () {
   const A = window.App, D = window.DATA, esc = A.esc;
@@ -1089,28 +1099,38 @@
 
   /* -------------------------- SHIPMENTS QUEUE -------------------------- */
   A.pages.shipments = function () {
-    // [name, refId, created, createdTime, updated, updatedTime, shipTo, deliveryWin, skus, units, located, status, work]
+    // Safe placeholder shipment data only. No real Seller Central account data.
+    // [name, shipmentId, referenceId, created, createdTime, updated, updatedTime, shipTo, deliveryWin, skus, units, located, status, work, demo]
     const sh = [
-      ["FBA STA (04/09/2026 03:02)-TPA2", "SAMPLE-TPA2-001, REF-TPA2-001", "Apr 9, 2026", "11:01 AM", "Jun 6, 2026", "1:25 PM", "TPA2", "Jun 7 – Jun 13, 2026", 4, 40, "40, 40", "Closed", false],
-      ["FBA ASDN (06/06/2026 05:03)-TEB6", "SAMPLE-TEB6-002, REF-TEB6-002", "Jun 6, 2026", "1:03 PM", "Jun 6, 2026", "1:10 PM", "TEB6", "Jun 7 – Jun 13, 2026", 1, 1, "0, 0", "Shipped", false],
-      ["FBA ASDN (06/06/2026 05:03)-TEB6", "SAMPLE-TEB6-003, REF-TEB6-003", "Jun 6, 2026", "1:03 PM", "Jun 6, 2026", "1:10 PM", "TEB6", "Jun 7 – Jun 13, 2026", 1, 2, "0, 0", "Shipped", false],
-      ["FBA STA (05/22/2026 12:33)-FAT2", "SAMPLE-FAT2-004, REF-FAT2-004", "May 22, 2026", "8:33 PM", "Jun 6, 2026", "10:49 AM", "FAT2", "Jun 21 – Jun 27, 2026", 5, 31, "0, 0", "In transit", false],
-      ["FBA STA (04/23/2026 03:41)-SNA4", "SAMPLE-SNA4-005, REF-SNA4-005", "Apr 23, 2026", "11:41 AM", "Jun 6, 2026", "7:03 AM", "SNA4", "May 24 – May 30, 2026", 5, 21, "21, 20", "Closed", false],
-      ["FBA STA (04/09/2026 03:02)-TEB4", "SAMPLE-TEB4-006, REF-TEB4-006", "Apr 9, 2026", "11:01 AM", "Jun 6, 2026", "3:18 AM", "TEB4", "May 31 – Jun 6, 2026", 4, 40, "40, 7", "Receiving", false],
-      ["FBA STA (06/05/2026 03:56)-SAT1", "SAMPLE-SAT1-007, REF-SAT1-007", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "SAT1", "Jul 12 – Jul 18, 2026", 3, 21, "0, 0", "Working", true],
-      ["FBA STA (06/05/2026 03:56)-MCO2", "SAMPLE-MCO2-008, REF-MCO2-008", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "MCO2", "Jul 12 – Jul 18, 2026", 5, 27, "0, 0", "Working", true],
-      ["FBA STA (06/05/2026 03:56)-MDT4", "SAMPLE-MDT4-009, REF-MDT4-009", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "MDT4", "Jul 12 – Jul 18, 2026", 5, 28, "0, 0", "Working", true],
-      ["FBA ASDN (06/04/2026 22:17)-BOS7", "SAMPLE-BOS7-010, REF-BOS7-010", "Jun 5, 2026", "6:17 AM", "Jun 5, 2026", "6:23 AM", "BOS7", "Jun 7 – Jun 13, 2026", 1, 2, "0, 0", "Shipped", false],
+      ["FBA Demo Shipment A", "FBA-DEMO-SHIP-001", "REF-DEMO-001", "Jun 10, 2026", "9:15 AM", "Jun 11, 2026", "4:42 PM", "Demo fulfillment center", "Jul 14 - Jul 20, 2026", 2, 48, "0, 0", "Working", true, true],
+      ["FBA Demo Shipment B", "SAMPLE-DEMO-002", "REF-DEMO-002", "Apr 9, 2026", "11:01 AM", "Jun 6, 2026", "1:25 PM", "Demo fulfillment center", "Jun 7 - Jun 13, 2026", 4, 40, "40, 40", "Closed", false, false],
+      ["FBA Demo Shipment C", "SAMPLE-DEMO-003", "REF-DEMO-003", "Jun 6, 2026", "1:03 PM", "Jun 6, 2026", "1:10 PM", "Demo fulfillment center", "Jun 7 - Jun 13, 2026", 1, 1, "0, 0", "Shipped", false, false],
+      ["FBA Demo Shipment D", "SAMPLE-DEMO-004", "REF-DEMO-004", "Jun 6, 2026", "1:03 PM", "Jun 6, 2026", "1:10 PM", "Demo fulfillment center", "Jun 7 - Jun 13, 2026", 1, 2, "0, 0", "Shipped", false, false],
+      ["FBA Demo Shipment E", "SAMPLE-DEMO-005", "REF-DEMO-005", "May 22, 2026", "8:33 PM", "Jun 6, 2026", "10:49 AM", "Demo fulfillment center", "Jun 21 - Jun 27, 2026", 5, 31, "0, 0", "In transit", false, false],
+      ["FBA Demo Shipment F", "SAMPLE-DEMO-006", "REF-DEMO-006", "Apr 23, 2026", "11:41 AM", "Jun 6, 2026", "7:03 AM", "Demo fulfillment center", "May 24 - May 30, 2026", 5, 21, "21, 20", "Closed", false, false],
+      ["FBA Demo Shipment G", "SAMPLE-DEMO-007", "REF-DEMO-007", "Apr 9, 2026", "11:01 AM", "Jun 6, 2026", "3:18 AM", "Demo fulfillment center", "May 31 - Jun 6, 2026", 4, 40, "40, 7", "Receiving", false, false],
+      ["FBA Demo Shipment H", "SAMPLE-DEMO-008", "REF-DEMO-008", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "Demo fulfillment center", "Jul 12 - Jul 18, 2026", 3, 21, "0, 0", "Working", true, false],
+      ["FBA Demo Shipment I", "SAMPLE-DEMO-009", "REF-DEMO-009", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "Demo fulfillment center", "Jul 12 - Jul 18, 2026", 5, 27, "0, 0", "Working", true, false],
+      ["FBA Demo Shipment J", "SAMPLE-DEMO-010", "REF-DEMO-010", "Jun 5, 2026", "11:56 AM", "Jun 5, 2026", "12:02 PM", "Demo fulfillment center", "Jul 12 - Jul 18, 2026", 5, 28, "0, 0", "Working", true, false],
+      ["FBA Demo Shipment K", "SAMPLE-DEMO-011", "REF-DEMO-011", "Jun 5, 2026", "6:17 AM", "Jun 5, 2026", "6:23 AM", "Demo fulfillment center", "Jun 7 - Jun 13, 2026", 1, 2, "0, 0", "Shipped", false, false],
     ];
     const cols = "1.95fr 96px 100px 1.15fr 56px 1.05fr 92px 150px";
-    const rows = sh.map(s => {
-      const [name, ref, created, createdT, updated, updatedT, shipTo, win, skus, units, located, status, work] = s;
+    const draft = A.state.shipmentSearchDraft || "";
+    const query = (A.state.shipmentSearchQuery || "").trim().toUpperCase();
+    const filtered = A.state.shipmentSearchSubmitted && query
+      ? sh.filter(s => String(s[1]).toUpperCase() === query)
+      : sh;
+    const rows = filtered.map(s => {
+      const [name, shipmentId, referenceId, created, createdT, updated, updatedT, shipTo, win, skus, units, located, status, work, demo] = s;
       const nextBtn = work
         ? `<div class="split-btn"><button class="btn primary sm main" data-act="goto" data-page="sendfc">Work on shipment</button><button class="btn primary sm more">${DCARET}</button></div>`
         : `<div class="split-btn"><button class="btn dark sm main">Track shipment</button><button class="btn dark sm more">${DCARET}</button></div>`;
+      const rowTour = demo ? ` data-tour="demo-shipment-row"` : "";
+      const shipmentTour = demo ? ` data-tour="demo-shipment-id-cell"` : "";
+      const referenceTour = demo ? ` data-tour="demo-reference-id-cell"` : "";
       return `
-      <div class="invrow" style="grid-template-columns:${cols}">
-        <div><a>${esc(name)}</a><div class="sub-time">${ref}</div></div>
+      <div class="invrow" style="grid-template-columns:${cols}"${rowTour}>
+        <div><a>${esc(name)}</a><div class="sub-time"${shipmentTour}>Shipment ID: ${esc(shipmentId)}</div><div class="sub-time"${referenceTour}>Reference ID: ${esc(referenceId)}</div></div>
         <div>${created}<div class="sub-time">${createdT}</div></div>
         <div>${updated}<div class="sub-time">${updatedT}</div></div>
         <div><b>${shipTo}</b><div class="sub-time">Delivery window ${win}</div></div>
@@ -1120,49 +1140,78 @@
         <div>${nextBtn}</div>
       </div>`;
     }).join("");
+    const empty = A.state.shipmentSearchSubmitted && query && !filtered.length
+      ? `<div class="sh-empty" data-tour="shipment-search-empty-state">
+          <div class="sh-empty-ic">&#9906;</div>
+          <div>
+            <b>No matching shipment found</b>
+            <p>Check the Shipment ID and search again. This demo uses safe placeholder shipment data only.</p>
+          </div>
+        </div>`
+      : "";
     return `
-    <div class="titlerow">
-      <div>
-        <h1 class="page-title">Shipping Queue</h1>
-        <p class="page-sub">This page provides details on all the shipments you are working on and those you have sent to Amazon.</p>
-      </div>
-      <div class="country-switch">
-        <div>
-          <div class="cs-label">Change country/region <span class="cs-new">New</span></div>
-          <div class="cs-val">Disabled</div>
+    <div class="shipments-page" data-tour="manage-shipments-page">
+      <div data-tour="shipping-queue-page">
+        <div class="titlerow">
+          <div>
+            <h1 class="page-title">Shipping Queue</h1>
+            <p class="page-sub">This page provides details on all the shipments you are working on and those you have sent to Amazon.</p>
+          </div>
+          <div class="country-switch">
+            <div>
+              <div class="cs-label">Change country/region <span class="cs-new">New</span></div>
+              <div class="cs-val">Disabled</div>
+            </div>
+            <div class="cs-ic">
+              <svg class="cs-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"></path></svg>
+              <span class="cs-caret">&#9662;</span>
+            </div>
+          </div>
         </div>
-        <div class="cs-ic">
-          <svg class="cs-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"></circle><path d="M3 12h18M12 3c2.5 2.5 2.5 15 0 18M12 3c-2.5 2.5-2.5 15 0 18"></path></svg>
-          <span class="cs-caret">&#9662;</span>
+        <div class="shtabs">
+          <div class="shtab on">Fulfillment center shipments <span class="ig">&#9432;</span></div>
+          <div class="shtab">Amazon distribution center shipments <span class="ig">&#9432;</span></div>
         </div>
+        <div class="shfilter">
+          <button class="btn dark sm">Filters</button>
+          <label class="sw-toggle"><span class="sw"></span> Missing tracking information only</label>
+          <select class="sel sm"><option>Last updated</option><option>Created</option></select>
+          <select class="sel sm"><option>Status</option><option>Working</option><option>Shipped</option><option>Closed</option></select>
+          <span class="export grow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"></path></svg> Export table data</span>
+          <div class="searchbox sm">
+            <input placeholder="Search by shipment ID" value="${esc(draft)}" data-input="shipment-id-search" data-tour="shipment-id-search-input" aria-label="Search by Shipment ID">
+            <button type="button" data-act="shipment-search" data-tour="shipment-id-search-button">Search</button>
+          </div>
+        </div>
+        <div class="invtable">
+          <div class="invhead" style="grid-template-columns:${cols}">
+            <span>Shipment name<span class="info">Shipment ID, Reference ID</span></span>
+            <span class="sortlink">Created</span>
+            <span><span class="sorted">Last updated &#9662;</span></span>
+            <span>Ship to</span>
+            <span>SKUs</span>
+            <span>Expected units ${ig}<span class="info">Located units, Prime eligible units</span></span>
+            <span>Status</span>
+            <span>Next steps</span>
+          </div>
+          ${rows}
+          ${empty}
+        </div>
+        <div class="tbl-foot"><span>Page 1</span><a>Next &#8250;</a></div>
       </div>
-    </div>
-    <div class="shtabs">
-      <div class="shtab on">Fulfillment center shipments <span class="ig">&#9432;</span></div>
-      <div class="shtab">Amazon distribution center shipments <span class="ig">&#9432;</span></div>
-    </div>
-    <div class="shfilter">
-      <button class="btn dark sm">Filters</button>
-      <label class="sw-toggle"><span class="sw"></span> Missing tracking information only</label>
-      <select class="sel sm"><option>Last updated</option><option>Created</option></select>
-      <select class="sel sm"><option>Status</option><option>Working</option><option>Shipped</option><option>Closed</option></select>
-      <span class="export grow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"></path></svg> Export table data</span>
-      <div class="searchbox sm"><input placeholder="Search by shipment ID" readonly><button>&#9906;</button></div>
-    </div>
-    <div class="invtable">
-      <div class="invhead" style="grid-template-columns:${cols}">
-        <span>Shipment name<span class="info">Shipment ID, Reference ID</span></span>
-        <span class="sortlink">Created</span>
-        <span><span class="sorted">Last updated &#9662;</span></span>
-        <span>Ship to</span>
-        <span>SKUs</span>
-        <span>Expected units ${ig}<span class="info">Located units, Prime eligible units</span></span>
-        <span>Status</span>
-        <span>Next steps</span>
-      </div>
-      ${rows}
-    </div>
-    <div class="tbl-foot"><span>Page 1</span><a>Next &#8250;</a></div>`;
+    </div>`;
+  };
+
+  A.actions["input:shipment-id-search"] = (ctx) => {
+    A.state.shipmentSearchDraft = ctx.value;
+  };
+  A.actions["shipment-search"] = (ctx) => {
+    const input = ctx.el.closest(".searchbox")?.querySelector("input");
+    const value = (input ? input.value : A.state.shipmentSearchDraft || "").trim();
+    A.state.shipmentSearchDraft = value;
+    A.state.shipmentSearchQuery = value;
+    A.state.shipmentSearchSubmitted = true;
+    A.render({ preservePageScroll: true });
   };
 
   /* ----------------------------- AWD ----------------------------- */

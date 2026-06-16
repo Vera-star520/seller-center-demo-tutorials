@@ -44,6 +44,9 @@ window.App = (function () {
     assistantPermissions: Object.assign({}, ASSISTANT_PERMISSION_DEFAULTS),
     assistantPermissionsTouched: false,
     assistantPermissionsSaved: false,
+    shipmentSearchDraft: "",
+    shipmentSearchQuery: "",
+    shipmentSearchSubmitted: false,
   };
   let toastTimer = null;
 
@@ -65,23 +68,35 @@ window.App = (function () {
     // `sec` (set only for sections with a fly-out) gives the item a tour anchor
     // and lets state.menuExpand force the fly-out open — the real menu reveals it
     // on hover, but the guide drives it by state so it can spotlight inside it.
-    const item = (label, sub, sec) => `
-      <div class="sm-item ${sub ? "has-fly" : "disabled"}${sec && state.menuExpand === sec ? " open" : ""}" data-act="menu-noop"${sec ? ` data-tour="menu-${sec}"` : ""}>
+    const flyLink = (label, page, tour) =>
+      `<div class="sm-link" data-act="goto" data-page="${page}"${tour ? ` data-tour="${tour}"` : ""}><span>${label}</span>${bm}</div>`;
+    const inventoryFly = `
+      <div class="sm-link disabled"><span>Manage All Inventory</span>${bm}</div>
+      <div class="sm-shead">Fulfillment by Amazon (FBA)</div>
+      ${flyLink("FBA Inventory", "inventory", "menu-fba-inventory")}
+      ${flyLink("Shipments", "shipments")}
+      ${flyLink("Warehousing and distribution (AWD)", "awd")}`;
+    const shipmentsFly = `
+      <div class="sm-shead">Fulfillment by Amazon (FBA)</div>
+      ${flyLink("Manage Shipments", "shipments", "manage-shipments-menu-item")}
+      ${flyLink("Send to Amazon", "sendfc")}
+      <div class="sm-link disabled"><span>Inbound Performance</span>${bm}</div>`;
+    const item = (label, sub, sec, tour) => {
+      const hasFly = !!sub;
+      const tourAttr = tour || (sec ? `menu-${sec}` : "");
+      return `
+      <div class="sm-item ${hasFly ? "has-fly" : "disabled"}${sec && state.menuExpand === sec ? " open" : ""}" data-act="${hasFly && sec ? "menu-expand" : "menu-noop"}"${sec ? ` data-sec="${sec}"` : ""}${tourAttr ? ` data-tour="${tourAttr}"` : ""}>
         <span>${label}</span><span class="ch"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"/></svg></span>
-        ${sub ? `<div class="sm-fly">
-          <div class="sm-link disabled"><span>Manage All Inventory</span>${bm}</div>
-          <div class="sm-shead">Fulfillment by Amazon (FBA)</div>
-          <div class="sm-link" data-act="goto" data-page="inventory" data-tour="menu-fba-inventory"><span>FBA Inventory</span>${bm}</div>
-          <div class="sm-link" data-act="goto" data-page="shipments"><span>Shipments</span>${bm}</div>
-          <div class="sm-link" data-act="goto" data-page="awd"><span>Warehousing and distribution (AWD)</span>${bm}</div>
-        </div>` : ""}
+        ${hasFly ? `<div class="sm-fly">${sub}</div>` : ""}
       </div>`;
+    };
     return `
     <div class="sm-scrim" data-act="menu-toggle">
       <div class="sm-panel" data-act="menu-noop">
         <div class="sm-top"><span class="x" data-act="menu-toggle">&#10005;</span><b>Menu</b></div>
         ${item("Catalog")}
-        ${item("Inventory", true, "inventory")}
+        ${item("Inventory", inventoryFly, "inventory")}
+        ${item("Shipments", shipmentsFly, "shipments", "shipments-menu-item")}
         ${item("Orders")}
         ${item("Growth")}
         ${item("Reports")}
@@ -207,6 +222,9 @@ window.App = (function () {
     if ("assistantPermissions" in spec) state.assistantPermissions = Object.assign({}, ASSISTANT_PERMISSION_DEFAULTS, spec.assistantPermissions || {});
     if ("assistantPermissionsTouched" in spec) state.assistantPermissionsTouched = spec.assistantPermissionsTouched;
     if ("assistantPermissionsSaved" in spec) state.assistantPermissionsSaved = spec.assistantPermissionsSaved;
+    if ("shipmentSearchDraft" in spec) state.shipmentSearchDraft = spec.shipmentSearchDraft;
+    if ("shipmentSearchQuery" in spec) state.shipmentSearchQuery = spec.shipmentSearchQuery;
+    if ("shipmentSearchSubmitted" in spec) state.shipmentSearchSubmitted = spec.shipmentSearchSubmitted;
     if (spec.wizard) {
       if (!state.wizard) App.initWizard();
       if (App.applyWizardScenario) App.applyWizardScenario(state.wizard, spec.wizard);
@@ -376,6 +394,7 @@ window.App = (function () {
       state.toast = null; state.userPermissionsTopTab = "management"; state.userManagementTab = "employees"; state.openInvitationsTab = "authorisedPartners";
       state.assistantInviteCreated = false; state.assistantInviteActionsOpen = false; state.assistantPermissions = Object.assign({}, ASSISTANT_PERMISSION_DEFAULTS);
       state.assistantPermissionsTouched = false; state.assistantPermissionsSaved = false;
+      state.shipmentSearchDraft = ""; state.shipmentSearchQuery = ""; state.shipmentSearchSubmitted = false;
     },
     pages: {}, actions: Object.assign({}, baseActions),
     D,

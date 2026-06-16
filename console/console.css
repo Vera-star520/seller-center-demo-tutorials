@@ -401,6 +401,10 @@ input, select { font: inherit; }
 .shfilter .searchbox.sm input { font-size: 13px; }
 .shfilter .searchbox.sm button { padding: 0 14px; font-size: 14px; }
 .shfilter .grow { margin-left: auto; }
+.sh-empty { display: flex; align-items: flex-start; gap: 12px; padding: 22px 18px; border-bottom: 1px solid var(--soft-line); color: var(--muted); font-size: 13px; line-height: 1.5; background: #fff; }
+.sh-empty b { display: block; color: var(--ink); margin-bottom: 4px; }
+.sh-empty p { margin: 0; }
+.sh-empty-ic { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--teal-soft); color: var(--teal-700); font-weight: 800; }
 
 /* ---- Shipping Queue: table cell helpers ---- */
 .invhead .sorted { background: var(--teal-soft); color: var(--teal-700); padding: 6px 9px; margin: -6px -9px; border-radius: 5px; display: inline-flex; align-items: center; gap: 6px; }

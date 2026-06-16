@@ -6,7 +6,6 @@
 (function () {
   [
     { id: "create-awd-shipping-plan", title: "Create an AWD Shipping Plan", category: "Shipments", level: "Core workflow", summary: "Create an AWD shipment plan and prepare inventory for Amazon Warehousing and Distribution.", est: "8–10 min", soon: true, libraryOrder: 9 },
-    { id: "get-reference-id", title: "Get the Reference ID", category: "Shipments", level: "Shipment details", summary: "Find the Amazon Reference ID needed for LTL / FTL shipments.", est: "2 min", soon: true, libraryOrder: 4 },
     { id: "fill-tracking-ids", title: "Fill out Tracking IDs", category: "Shipments", level: "Shipment details", summary: "Enter or update tracking IDs for your shipments in Seller Central.", est: "3 min", soon: true, libraryOrder: 5 },
     { id: "download-sku-list-box-ids", title: "Download the SKU List with Box IDs", category: "Shipments", level: "Shipment files", summary: "Download the SKU list or pack list with Box IDs to help ensure accurate carton labeling.", est: "3 min", soon: true, libraryOrder: 6 },
     { id: "delete-shipping-plan", title: "Delete a Shipping Plan", category: "Shipments", level: "Problem solving", summary: "Delete an unwanted or incorrect shipping plan.", est: "2 min", soon: true, libraryOrder: 7 },
